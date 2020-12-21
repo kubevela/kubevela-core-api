@@ -12,3 +12,7 @@ You can use this separated package if you want:
 
 * use it as SDK and build your own user interface.
 * avoid conflicts of `go.mod` by reducing dependency from KubeVela.
+
+## Usage
+
+Refer to [test/main.go](test/main.go) as example.
