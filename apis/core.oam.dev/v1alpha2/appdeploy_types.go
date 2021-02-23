@@ -17,21 +17,47 @@ limitations under the License.
 package v1alpha2
 
 import (
-	runtimev1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
 )
 
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// ApplicationDeploymentSpec defines the desired state of ApplicationDeployment
+// ApplicationDeploymentSpec defines how to describe an upgrade between different application
 type ApplicationDeploymentSpec struct {
-	// TODO add spec here
+	// TargetApplicationName contains the name of the application that we need to upgrade to.
+	// We assume that an application is immutable, thus the name alone is suffice
+	TargetApplicationName string `json:"targetApplicationName"`
+
+	// SourceApplicationName contains the name of the application that we need to upgrade from.
+	// it can be empty only when it's the first time to deploy the application
+	SourceApplicationName string `json:"sourceApplicationName,omitempty"`
+
+	// The list of component to upgrade in the application.
+	// We only support single component application so far
+	// TODO: (RZ) Support multiple components in an application
+	// +optional
+	ComponentList []string `json:"componentList,omitempty"`
+
+	// RolloutPlan is the details on how to rollout the resources
+	RolloutPlan v1alpha1.RolloutPlan `json:"rolloutPlan"`
+
+	// RevertOnDelete revert the rollout when the rollout CR is deleted, default is false
+	// It will remove the target application from the kubernetes
+	// +optional
+	RevertOnDelete *bool `json:"revertOnDelete,omitempty"`
 }
 
 // ApplicationDeploymentStatus defines the observed state of ApplicationDeployment
 type ApplicationDeploymentStatus struct {
-	// TODO add status field here
-	runtimev1alpha1.ConditionedStatus `json:",inline"`
+	v1alpha1.RolloutStatus `json:",inline"`
+
+	// LastTargetApplicationName contains the name of the application that we upgraded to
+	// We will restart the rollout if this is not the same as the spec
+	LastTargetApplicationName string `json:"lastTargetApplicationName"`
+
+	// LastSourceApplicationName contains the name of the application that we need to upgrade from.
+	// We will restart the rollout if this is not the same as the spec
+	LastSourceApplicationName string `json:"lastSourceApplicationName,omitempty"`
 }
 
 // ApplicationDeployment is the Schema for the ApplicationDeployment API

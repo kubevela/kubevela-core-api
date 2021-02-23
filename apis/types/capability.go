@@ -18,12 +18,10 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"cuelang.org/go/cue"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/pflag"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Source record the source of Capability
@@ -88,6 +86,14 @@ const (
 	TypeScope CapType = "scope"
 )
 
+// CapabilityCategory defines the category of a capability
+type CapabilityCategory string
+
+const (
+	// TerraformCategory means the capability is in Terraform format
+	TerraformCategory CapabilityCategory = "terraform"
+)
+
 // Parameter defines a parameter for cli from capability template
 type Parameter struct {
 	Name     string      `json:"name"`
@@ -97,20 +103,6 @@ type Parameter struct {
 	Usage    string      `json:"usage,omitempty"`
 	Type     cue.Kind    `json:"type,omitempty"`
 	Alias    string      `json:"alias,omitempty"`
-}
-
-// ConvertTemplateJSON2Object convert spec.extension to object
-func ConvertTemplateJSON2Object(in *runtime.RawExtension) (Capability, error) {
-	var t Capability
-	var extension Capability
-	if in == nil || in.Raw == nil {
-		return t, fmt.Errorf("no template found")
-	}
-	err := json.Unmarshal(in.Raw, &extension)
-	if err == nil {
-		t = extension
-	}
-	return t, err
 }
 
 // SetFlagBy set cli flag from Parameter

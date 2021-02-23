@@ -6,6 +6,9 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/yaml"
+
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
 )
 
 // JSONMarshal returns the JSON encoding
@@ -82,11 +85,10 @@ func (matcher ErrorMatcher) Match(actual interface{}) (success bool, err error) 
 }
 
 // FailureMessage builds an error message.
-//nolint:errorlint
-// TODO(roywang) use errors.As() instead of type assertion on error
 func (matcher ErrorMatcher) FailureMessage(actual interface{}) (message string) {
 	actualError, actualOK := actual.(error)
-	expectedError, expectedOK := matcher.ExpectedError.(error)
+	expectedError := matcher.ExpectedError
+	expectedOK := expectedError != nil
 
 	if actualOK && expectedOK {
 		return format.MessageWithDiff(actualError.Error(), "to equal", expectedError.Error())
@@ -104,11 +106,10 @@ func (matcher ErrorMatcher) FailureMessage(actual interface{}) (message string) 
 }
 
 // NegatedFailureMessage builds an error message.
-//nolint:errorlint
-// TODO(roywang) use errors.As() instead of type assertion on error
 func (matcher ErrorMatcher) NegatedFailureMessage(actual interface{}) (message string) {
 	actualError, actualOK := actual.(error)
-	expectedError, expectedOK := matcher.ExpectedError.(error)
+	expectedError := matcher.ExpectedError
+	expectedOK := expectedError != nil
 
 	if actualOK && expectedOK {
 		return format.MessageWithDiff(actualError.Error(), "not to equal", expectedError.Error())
@@ -123,4 +124,30 @@ func (matcher ErrorMatcher) NegatedFailureMessage(actual interface{}) (message s
 	}
 
 	return format.Message(actual, "not to equal", expectedError)
+}
+
+// UnMarshalStringToWorkloadDefinition parse a string to a workloadDefinition object
+func UnMarshalStringToWorkloadDefinition(s string) (*v1alpha2.WorkloadDefinition, error) {
+	obj := &v1alpha2.WorkloadDefinition{}
+	_body, err := yaml.YAMLToJSON([]byte(s))
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(_body, obj); err != nil {
+		return nil, err
+	}
+	return obj, nil
+}
+
+// UnMarshalStringToTraitDefinition parse a string to a traitDefinition object
+func UnMarshalStringToTraitDefinition(s string) (*v1alpha2.TraitDefinition, error) {
+	obj := &v1alpha2.TraitDefinition{}
+	_body, err := yaml.YAMLToJSON([]byte(s))
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(_body, obj); err != nil {
+		return nil, err
+	}
+	return obj, nil
 }

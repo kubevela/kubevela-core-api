@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/api/meta"
-
 	cpv1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-logr/logr"
@@ -20,8 +18,10 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -29,7 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
-
 	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam/discoverymapper"
 )
@@ -51,7 +50,7 @@ const (
 	Dummy = "dummy"
 
 	// DummyTraitMessage is a message for trait which don't have definition found
-	DummyTraitMessage = "No valid TraitDefinition found, all framework capabilities will work as default or disabled"
+	DummyTraitMessage = "No TraitDefinition found, all framework capabilities will work as default"
 
 	// DefinitionNamespaceEnv is env key for specifying a namespace to fetch definition
 	DefinitionNamespaceEnv = "DEFINITION_NAMESPACE"
@@ -181,10 +180,9 @@ func FetchTraitDefinition(ctx context.Context, r client.Reader, dm discoverymapp
 	if err != nil {
 		return nil, err
 	}
-	nn := GenNamespacedDefinitionName(trName)
 	// Fetch the corresponding traitDefinition CR
-	traitDefinition := &v1alpha2.TraitDefinition{}
-	if err := r.Get(ctx, nn, traitDefinition); err != nil {
+	traitDefinition, err := GetTraitDefinition(ctx, r, trName)
+	if err != nil {
 		return nil, err
 	}
 	return traitDefinition, nil
@@ -198,10 +196,9 @@ func FetchWorkloadDefinition(ctx context.Context, r client.Reader, dm discoverym
 	if err != nil {
 		return nil, err
 	}
-	nn := GenNamespacedDefinitionName(wldName)
 	// Fetch the corresponding workloadDefinition CR
-	workloadDefinition := &v1alpha2.WorkloadDefinition{}
-	if err := r.Get(ctx, nn, workloadDefinition); err != nil {
+	workloadDefinition, err := GetWorkloadDefinition(ctx, r, wldName)
+	if err != nil {
 		return nil, err
 	}
 	return workloadDefinition, nil
@@ -213,6 +210,25 @@ func GenNamespacedDefinitionName(dn string) types.NamespacedName {
 		return types.NamespacedName{Name: dn, Namespace: dns}
 	}
 	return types.NamespacedName{Name: dn}
+}
+
+// GetWorkloadDefinition  Get WorkloadDefinition
+func GetWorkloadDefinition(ctx context.Context, cli client.Reader,
+	workitemName string) (*v1alpha2.WorkloadDefinition, error) {
+	wd := new(v1alpha2.WorkloadDefinition)
+	if err := cli.Get(ctx, GenNamespacedDefinitionName(workitemName), wd); err != nil {
+		return nil, err
+	}
+	return wd, nil
+}
+
+// GetTraitDefinition Get TraitDefinition
+func GetTraitDefinition(ctx context.Context, cli client.Reader, traitName string) (*v1alpha2.TraitDefinition, error) {
+	td := new(v1alpha2.TraitDefinition)
+	if err := cli.Get(ctx, GenNamespacedDefinitionName(traitName), td); err != nil {
+		return nil, err
+	}
+	return td, nil
 }
 
 // FetchWorkloadChildResources fetch corresponding child resources given a workload
@@ -318,6 +334,11 @@ func GetDefinitionName(dm discoverymapper.DiscoveryMapper, u *unstructured.Unstr
 
 // GetGVKFromDefinition help get Group Version Kind from DefinitionReference
 func GetGVKFromDefinition(dm discoverymapper.DiscoveryMapper, definitionRef v1alpha2.DefinitionReference) (schema.GroupVersionKind, error) {
+	// if given definitionRef is empty or it's a dummy definition, return an empty GVK
+	// NOTE currently, only TraitDefinition is allowed to omit definitionRef conditionally.
+	if len(definitionRef.Name) < 1 || definitionRef.Name == Dummy {
+		return schema.EmptyObjectKind.GroupVersionKind(), nil
+	}
 	var gvk schema.GroupVersionKind
 	groupResource := schema.ParseGroupResource(definitionRef.Name)
 	gvr := schema.GroupVersionResource{Group: groupResource.Group, Resource: groupResource.Resource, Version: definitionRef.Version}
@@ -331,6 +352,42 @@ func GetGVKFromDefinition(dm discoverymapper.DiscoveryMapper, definitionRef v1al
 		}
 	}
 	return kinds[0], nil
+}
+
+// GetObjectsGivenGVKAndLabels fetches the kubernetes object given its gvk and labels by list API
+func GetObjectsGivenGVKAndLabels(ctx context.Context, cli client.Reader,
+	gvk schema.GroupVersionKind, namespace string, labels map[string]string) (*unstructured.UnstructuredList, error) {
+	unstructuredObjList := &unstructured.UnstructuredList{}
+	apiVersion := metav1.GroupVersion{
+		Group:   gvk.Group,
+		Version: gvk.Version,
+	}.String()
+	unstructuredObjList.SetAPIVersion(apiVersion)
+	unstructuredObjList.SetKind(gvk.Kind)
+	if err := cli.List(ctx, unstructuredObjList, client.MatchingLabels(labels), client.InNamespace(namespace)); err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get obj with labels %+v and gvk %+v ", labels, gvk))
+	}
+	return unstructuredObjList, nil
+}
+
+// GetObjectGivenGVKAndName fetches the kubernetes object given its gvk and name
+func GetObjectGivenGVKAndName(ctx context.Context, client client.Reader,
+	gvk schema.GroupVersionKind, namespace, name string) (*unstructured.Unstructured, error) {
+	obj := &unstructured.Unstructured{}
+	apiVersion := metav1.GroupVersion{
+		Group:   gvk.Group,
+		Version: gvk.Version,
+	}.String()
+	obj.SetAPIVersion(apiVersion)
+	obj.SetKind(gvk.Kind)
+	err := client.Get(ctx, types.NamespacedName{
+		Namespace: namespace,
+		Name:      name},
+		obj)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to get obj %s with gvk %+v ", name, gvk))
+	}
+	return obj, nil
 }
 
 // Object2Unstructured convert an object to an unstructured struct
@@ -355,10 +412,27 @@ func Object2Map(obj interface{}) (map[string]interface{}, error) {
 	return res, err
 }
 
+// RawExtension2Map will convert rawExtension to map
+func RawExtension2Map(raw *runtime.RawExtension) (map[string]interface{}, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	data, err := raw.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	var ret map[string]interface{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, err
+}
+
 // GenTraitName generate trait name
 func GenTraitName(componentName string, ct *v1alpha2.ComponentTrait, traitType string) string {
 	var traitMiddleName = TraitPrefixKey
-	if traitType != "" {
+	if traitType != "" && traitType != Dummy {
 		traitMiddleName = strings.ToLower(traitType)
 	}
 	return fmt.Sprintf("%s-%s-%s", componentName, traitMiddleName, ComputeHash(ct))

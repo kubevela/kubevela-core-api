@@ -30,10 +30,14 @@ import (
 type ApplicationPhase string
 
 const (
+	// ApplicationRollingOut means the app is in the middle of rolling out
+	ApplicationRollingOut ApplicationPhase = "rollingOut"
 	// ApplicationRendering means the app is rendering
 	ApplicationRendering ApplicationPhase = "rendering"
 	// ApplicationRunning means the app finished rendering and applied result to the cluster
 	ApplicationRunning ApplicationPhase = "running"
+	// ApplicationHealthChecking means the app finished rendering and applied result to the cluster, but still unhealthy
+	ApplicationHealthChecking ApplicationPhase = "healthChecking"
 )
 
 // AppStatus defines the observed state of Application
@@ -44,6 +48,57 @@ type AppStatus struct {
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
 
 	Phase ApplicationPhase `json:"status,omitempty"`
+
+	// Components record the related Components created by Application Controller
+	Components []runtimev1alpha1.TypedReference `json:"components,omitempty"`
+
+	// Services record the status of the application services
+	Services []ApplicationComponentStatus `json:"services,omitempty"`
+}
+
+// ApplicationComponentStatus record the health status of App component
+type ApplicationComponentStatus struct {
+	Name    string                   `json:"name"`
+	Healthy bool                     `json:"healthy"`
+	Message string                   `json:"message,omitempty"`
+	Traits  []ApplicationTraitStatus `json:"traits,omitempty"`
+}
+
+// ApplicationTraitStatus records the trait health status
+type ApplicationTraitStatus struct {
+	Type    string `json:"type"`
+	Healthy bool   `json:"healthy"`
+	Message string `json:"message,omitempty"`
+}
+
+// ApplicationTrait defines the trait of application
+type ApplicationTrait struct {
+	Name string `json:"name"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Properties runtime.RawExtension `json:"properties"`
+}
+
+// ApplicationComponent describe the component of application
+type ApplicationComponent struct {
+	Name         string `json:"name"`
+	WorkloadType string `json:"type"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Settings runtime.RawExtension `json:"settings"`
+
+	// Traits define the trait of one component, the type must be array to keep the order.
+	Traits []ApplicationTrait `json:"traits,omitempty"`
+
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// scopes in ApplicationComponent defines the component-level scopes
+	// the format is <scope-type:scope-instance-name> pairs, the key represents type of `ScopeDefinition` while the value represent the name of scope instance.
+	Scopes map[string]string `json:"scopes,omitempty"`
+}
+
+// ApplicationSpec is the spec of Application
+type ApplicationSpec struct {
+	Components []ApplicationComponent `json:"components"`
+
+	// TODO(wonderflow): we should have application level scopes supported here
 }
 
 // +kubebuilder:object:root=true
@@ -54,9 +109,8 @@ type Application struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Spec   runtime.RawExtension `json:"spec,omitempty"`
-	Status AppStatus            `json:"status,omitempty"`
+	Spec   ApplicationSpec `json:"spec,omitempty"`
+	Status AppStatus       `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -68,6 +122,12 @@ type ApplicationList struct {
 	Items           []Application `json:"items"`
 }
 
-func init() {
-	SchemeBuilder.Register(&Application{}, &ApplicationList{})
+// GetComponent get the component from the application based on its workload type
+func (app *Application) GetComponent(workloadType string) *ApplicationComponent {
+	for _, c := range app.Spec.Components {
+		if c.WorkloadType == workloadType {
+			return &c
+		}
+	}
+	return nil
 }

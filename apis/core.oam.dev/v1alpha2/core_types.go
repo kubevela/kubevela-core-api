@@ -64,10 +64,34 @@ type WorkloadDefinitionSpec struct {
 	// +optional
 	PodSpecPath string `json:"podSpecPath,omitempty"`
 
+	// Status defines the custom health policy and status message for workload
+	// +optional
+	Status *Status `json:"status,omitempty"`
+
+	// Template defines the abstraction template data of the workload, it will replace the old template in extension field.
+	// the data format depends on templateType, by default it's CUE
+	// +optional
+	Template string `json:"template,omitempty"`
+
+	// TemplateType defines the data format of the template, by default it's CUE format
+	// Terraform HCL, Helm Chart will also be candidates in the near future.
+	// +optional
+	TemplateType string `json:"templateType,omitempty"`
+
 	// Extension is used for extension needs by OAM platform builders
 	// +optional
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Extension *runtime.RawExtension `json:"extension,omitempty"`
+}
+
+// Status defines the loop back status of the abstraction by using CUE template
+type Status struct {
+	// CustomStatus defines the custom status message that could display to user
+	// +optional
+	CustomStatus string `json:"customStatus,omitempty"`
+	// HealthPolicy defines the health check policy for the abstraction
+	// +optional
+	HealthPolicy string `json:"healthPolicy,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -97,7 +121,7 @@ type WorkloadDefinitionList struct {
 // A TraitDefinitionSpec defines the desired state of a TraitDefinition.
 type TraitDefinitionSpec struct {
 	// Reference to the CustomResourceDefinition that defines this trait kind.
-	Reference DefinitionReference `json:"definitionRef"`
+	Reference DefinitionReference `json:"definitionRef,omitempty"`
 
 	// Revision indicates whether a trait is aware of component revision
 	// +optional
@@ -113,6 +137,32 @@ type TraitDefinitionSpec struct {
 	// all workload kinds.
 	// +optional
 	AppliesToWorkloads []string `json:"appliesToWorkloads,omitempty"`
+
+	// ConflictsWith specifies the list of traits(CRD name, Definition name, CRD group)
+	// which could not apply to the same workloads with this trait.
+	// Traits that omit this field can work with any other traits.
+	// Example rules:
+	// "service" # Trait definition name
+	// "services.k8s.io" # API resource/crd name
+	// "*.networking.k8s.io" # API group
+	// "labelSelector:foo=bar" # label selector
+	// labelSelector format: https://pkg.go.dev/k8s.io/apimachinery/pkg/labels#Parse
+	// +optional
+	ConflictsWith []string `json:"conflictsWith,omitempty"`
+
+	// Template defines the abstraction template data of the workload, it will replace the old template in extension field.
+	// the data format depends on templateType, by default it's CUE
+	// +optional
+	Template string `json:"template,omitempty"`
+
+	// TemplateType defines the data format of the template, by default it's CUE format
+	// Terraform HCL, Helm Chart will also be candidates in the near future.
+	// +optional
+	TemplateType string `json:"templateType,omitempty"`
+
+	// Status defines the custom health policy and status message for trait
+	// +optional
+	Status *Status `json:"status,omitempty"`
 
 	// Extension is used for extension needs by OAM platform builders
 	// +optional
@@ -389,6 +439,13 @@ type WorkloadStatus struct {
 	// ComponentRevisionName of current component
 	ComponentRevisionName string `json:"componentRevisionName,omitempty"`
 
+	// ObservedGeneration indicates the generation observed by the appconfig controller.
+	// The same field is also recorded in the annotations of workloads.
+	// A workload is possible to be deleted from cluster after created.
+	// This field is useful to track the observed generation of workloads after they are
+	// deleted.
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
 	// Reference to a workload created by an ApplicationConfiguration.
 	Reference runtimev1alpha1.TypedReference `json:"workloadRef,omitempty"`
 
@@ -504,6 +561,12 @@ type DataInput struct {
 
 	// ToFieldPaths specifies the field paths of an object to fill passed value.
 	ToFieldPaths []string `json:"toFieldPaths,omitempty"`
+
+	// StrategyMergeKeys specifies the merge key if the toFieldPaths target is an array.
+	// The StrategyMergeKeys is optional, by default, if the toFieldPaths target is an array, we will append.
+	// If StrategyMergeKeys specified, we will check the key in the target array.
+	// If any key exist, do update; if no key exist, append.
+	StrategyMergeKeys []string `json:"strategyMergeKeys,omitempty"`
 }
 
 // DataInputValueFrom specifies the value source for a data input.
