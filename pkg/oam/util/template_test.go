@@ -65,6 +65,7 @@ apiVersion: core.oam.dev/v1alpha2
 kind: WorkloadDefinition
 metadata:
   name: worker
+  namespace: default
   annotations:
     definition.oam.dev/description: "Long-running scalable backend worker without network endpoint"
 spec:
@@ -89,7 +90,7 @@ spec:
 		},
 	}
 
-	temp, err := LoadTemplate(&tclient, "worker", types.TypeWorkload)
+	temp, err := LoadTemplate(context.TODO(), &tclient, "worker", types.TypeWorkload)
 
 	if err != nil {
 		t.Error(err)
@@ -115,53 +116,53 @@ spec:
 
 func TestLoadTraitTemplate(t *testing.T) {
 	cueTemplate := `
-      parameter: {
-      	domain: string
-      	http: [string]: int
-      }
-      context: {
-         name: "test"
-      }
-      // trait template can have multiple outputs in one trait
-      outputs: service: {
-      	apiVersion: "v1"
-      	kind:       "Service"
-      	metadata:
-      		name: context.name
-      	spec: {
-      		selector:
-      			"app.oam.dev/component": context.name
-      		ports: [
-      			for k, v in parameter.http {
-      				port:       v
-      				targetPort: v
-      			},
-      		]
-      	}
-      }
-      
-      outputs: ingress: {
-      	apiVersion: "networking.k8s.io/v1beta1"
-      	kind:       "Ingress"
-      	metadata:
-      		name: context.name
-      	spec: {
-      		rules: [{
-      			host: parameter.domain
-      			http: {
-      				paths: [
-      					for k, v in parameter.http {
-      						path: k
-      						backend: {
-      							serviceName: context.name
-      							servicePort: v
-      						}
-      					},
-      				]
-      			}
-      		}]
-      	}
-      }
+        parameter: {
+        	domain: string
+        	http: [string]: int
+        }
+        context: {
+        	name: "test"
+        }
+        // trait template can have multiple outputs in one trait
+        outputs: service: {
+        	apiVersion: "v1"
+        	kind:       "Service"
+        	metadata:
+        		name: context.name
+        	spec: {
+        		selector:
+        			"app.oam.dev/component": context.name
+        		ports: [
+        			for k, v in parameter.http {
+        				port:       v
+        				targetPort: v
+        			},
+        		]
+        	}
+        }
+
+        outputs: ingress: {
+        	apiVersion: "networking.k8s.io/v1beta1"
+        	kind:       "Ingress"
+        	metadata:
+        		name: context.name
+        	spec: {
+        		rules: [{
+        			host: parameter.domain
+        			http: {
+        				paths: [
+        					for k, v in parameter.http {
+        						path: k
+        						backend: {
+        							serviceName: context.name
+        							servicePort: v
+        						}
+        					},
+        				]
+        			}
+        		}]
+        	}
+        }
       `
 
 	var traitDefintion = `
@@ -172,6 +173,7 @@ metadata:
     definition.oam.dev/description: "Configures K8s ingress and service to enable web traffic for your service.
     Please use route trait in cap center for advanced usage."
   name: ingress
+  namespace: default
 spec:
   status:
     customStatus: |-
@@ -186,7 +188,9 @@ spec:
   appliesToWorkloads:
     - webservice
     - worker
-  template: |
+  schematic:
+    cue:
+      template: |
 ` + cueTemplate
 
 	// Create mock client
@@ -204,7 +208,7 @@ spec:
 		},
 	}
 
-	temp, err := LoadTemplate(&tclient, "ingress", types.TypeTrait)
+	temp, err := LoadTemplate(context.TODO(), &tclient, "ingress", types.TypeTrait)
 
 	if err != nil {
 		t.Error(err)
@@ -230,13 +234,13 @@ spec:
 
 func TestNewTemplate(t *testing.T) {
 	testCases := map[string]struct {
-		tmp    string
+		tmp    *v1alpha2.Schematic
 		status *v1alpha2.Status
 		ext    *runtime.RawExtension
 		exp    *Template
 	}{
 		"only tmp": {
-			tmp: "t1",
+			tmp: &v1alpha2.Schematic{CUE: &v1alpha2.CUE{Template: "t1"}},
 			exp: &Template{
 				TemplateStr: "t1",
 			},
@@ -254,7 +258,7 @@ func TestNewTemplate(t *testing.T) {
 			},
 		},
 		"tmp with status": {
-			tmp: "t1",
+			tmp: &v1alpha2.Schematic{CUE: &v1alpha2.CUE{Template: "t1"}},
 			status: &v1alpha2.Status{
 				CustomStatus: "s1",
 				HealthPolicy: "h1",

@@ -24,23 +24,24 @@ type Template struct {
 }
 
 // GetScopeGVK Get ScopeDefinition
-func GetScopeGVK(cli client.Client, dm discoverymapper.DiscoveryMapper,
+func GetScopeGVK(ctx context.Context, cli client.Reader, dm discoverymapper.DiscoveryMapper,
 	name string) (schema.GroupVersionKind, error) {
 	var gvk schema.GroupVersionKind
 	sd := new(v1alpha2.ScopeDefinition)
-	if err := cli.Get(context.Background(), client.ObjectKey{
-		Name: name,
-	}, sd); err != nil {
+	err := GetDefinition(ctx, cli, sd, name)
+	if err != nil {
 		return gvk, err
 	}
+
 	return GetGVKFromDefinition(dm, sd.Spec.Reference)
 }
 
 // LoadTemplate Get template according to key
-func LoadTemplate(cli client.Reader, key string, kd types.CapType) (*Template, error) {
+func LoadTemplate(ctx context.Context, cli client.Reader, key string, kd types.CapType) (*Template, error) {
 	switch kd {
 	case types.TypeWorkload:
-		wd, err := GetWorkloadDefinition(context.TODO(), cli, key)
+		wd := new(v1alpha2.WorkloadDefinition)
+		err := GetDefinition(ctx, cli, wd, key)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "LoadTemplate [%s] ", key)
 		}
@@ -48,7 +49,7 @@ func LoadTemplate(cli client.Reader, key string, kd types.CapType) (*Template, e
 		if wd.Annotations["type"] == string(types.TerraformCategory) {
 			capabilityCategory = types.TerraformCategory
 		}
-		tmpl, err := NewTemplate(wd.Spec.Template, wd.Spec.Status, wd.Spec.Extension)
+		tmpl, err := NewTemplate(wd.Spec.Schematic, wd.Spec.Status, wd.Spec.Extension)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "LoadTemplate [%s] ", key)
 		}
@@ -59,7 +60,8 @@ func LoadTemplate(cli client.Reader, key string, kd types.CapType) (*Template, e
 		return tmpl, nil
 
 	case types.TypeTrait:
-		td, err := GetTraitDefinition(context.TODO(), cli, key)
+		td := new(v1alpha2.TraitDefinition)
+		err := GetDefinition(ctx, cli, td, key)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "LoadTemplate [%s] ", key)
 		}
@@ -67,7 +69,7 @@ func LoadTemplate(cli client.Reader, key string, kd types.CapType) (*Template, e
 		if td.Annotations["type"] == string(types.TerraformCategory) {
 			capabilityCategory = types.TerraformCategory
 		}
-		tmpl, err := NewTemplate(td.Spec.Template, td.Spec.Status, td.Spec.Extension)
+		tmpl, err := NewTemplate(td.Spec.Schematic, td.Spec.Status, td.Spec.Extension)
 		if err != nil {
 			return nil, errors.WithMessagef(err, "LoadTemplate [%s] ", key)
 		}
@@ -83,7 +85,11 @@ func LoadTemplate(cli client.Reader, key string, kd types.CapType) (*Template, e
 }
 
 // NewTemplate will create CUE template for inner AbstractEngine using.
-func NewTemplate(template string, status *v1alpha2.Status, raw *runtime.RawExtension) (*Template, error) {
+func NewTemplate(schematic *v1alpha2.Schematic, status *v1alpha2.Status, raw *runtime.RawExtension) (*Template, error) {
+	var template string
+	if schematic != nil && schematic.CUE != nil {
+		template = schematic.CUE.Template
+	}
 	extension := map[string]interface{}{}
 	tmp := &Template{
 		TemplateStr: template,
@@ -106,9 +112,9 @@ func NewTemplate(template string, status *v1alpha2.Status, raw *runtime.RawExten
 }
 
 // ConvertTemplateJSON2Object convert spec.extension to object
-func ConvertTemplateJSON2Object(in *runtime.RawExtension, specTemplate string) (types.Capability, error) {
+func ConvertTemplateJSON2Object(in *runtime.RawExtension, schematic *v1alpha2.Schematic) (types.Capability, error) {
 	var t types.Capability
-	capTemplate, err := NewTemplate(specTemplate, nil, in)
+	capTemplate, err := NewTemplate(schematic, nil, in)
 	if err != nil {
 		return t, errors.Wrapf(err, "parse cue template")
 	}
