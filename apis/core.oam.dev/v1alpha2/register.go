@@ -37,6 +37,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
+// ComponentDefinition type metadata.
+var (
+	ComponentDefinitionKind             = reflect.TypeOf(ComponentDefinition{}).Name()
+	ComponentDefinitionGroupKind        = schema.GroupKind{Group: Group, Kind: ComponentDefinitionKind}.String()
+	ComponentDefinitionKindAPIVersion   = ComponentDefinitionKind + "." + SchemeGroupVersion.String()
+	ComponentDefinitionGroupVersionKind = SchemeGroupVersion.WithKind(ComponentDefinitionKind)
+)
+
 // WorkloadDefinition type metadata.
 var (
 	WorkloadDefinitionKind             = reflect.TypeOf(WorkloadDefinition{}).Name()
@@ -77,6 +85,14 @@ var (
 	ApplicationConfigurationGroupVersionKind = SchemeGroupVersion.WithKind(ApplicationConfigurationKind)
 )
 
+// ApplicationContext type metadata.
+var (
+	ApplicationContextKind             = reflect.TypeOf(ApplicationContext{}).Name()
+	ApplicationContextGroupKind        = schema.GroupKind{Group: Group, Kind: ApplicationContextKind}.String()
+	ApplicationContextKindAPIVersion   = ApplicationContextKind + "." + SchemeGroupVersion.String()
+	ApplicationContextGroupVersionKind = SchemeGroupVersion.WithKind(ApplicationContextKind)
+)
+
 // ContainerizedWorkload type metadata.
 var (
 	ContainerizedWorkloadKind             = reflect.TypeOf(ContainerizedWorkload{}).Name()
@@ -109,15 +125,24 @@ var (
 	ApplicationKindVersionKind = SchemeGroupVersion.WithKind(ApplicationKind)
 )
 
-// Application type metadata.
+// AppRollout type metadata.
 var (
-	ApplicationDeploymentKind            = reflect.TypeOf(ApplicationDeployment{}).Name()
-	ApplicationDeploymentGroupKind       = schema.GroupKind{Group: Group, Kind: ApplicationDeploymentKind}.String()
-	ApplicationDeploymentKindAPIVersion  = ApplicationKind + "." + SchemeGroupVersion.String()
-	ApplicationDeploymentKindVersionKind = SchemeGroupVersion.WithKind(ApplicationDeploymentKind)
+	AppRolloutKind            = reflect.TypeOf(AppRollout{}).Name()
+	AppRolloutGroupKind       = schema.GroupKind{Group: Group, Kind: AppRolloutKind}.String()
+	AppRolloutKindAPIVersion  = ApplicationKind + "." + SchemeGroupVersion.String()
+	AppRolloutKindVersionKind = SchemeGroupVersion.WithKind(AppRolloutKind)
+)
+
+// ApplicationRevision type metadata
+var (
+	ApplicationRevisionKind             = reflect.TypeOf(ApplicationRevision{}).Name()
+	ApplicationRevisionGroupKind        = schema.GroupKind{Group: Group, Kind: ApplicationRevisionKind}.String()
+	ApplicationRevisionKindAPIVersion   = ApplicationRevisionKind + "." + SchemeGroupVersion.String()
+	ApplicationRevisionGroupVersionKind = SchemeGroupVersion.WithKind(ApplicationRevisionKind)
 )
 
 func init() {
+	SchemeBuilder.Register(&ComponentDefinition{}, &ComponentDefinitionList{})
 	SchemeBuilder.Register(&WorkloadDefinition{}, &WorkloadDefinitionList{})
 	SchemeBuilder.Register(&TraitDefinition{}, &TraitDefinitionList{})
 	SchemeBuilder.Register(&ScopeDefinition{}, &ScopeDefinitionList{})
@@ -127,5 +152,7 @@ func init() {
 	SchemeBuilder.Register(&ManualScalerTrait{}, &ManualScalerTraitList{})
 	SchemeBuilder.Register(&HealthScope{}, &HealthScopeList{})
 	SchemeBuilder.Register(&Application{}, &ApplicationList{})
-	SchemeBuilder.Register(&ApplicationDeployment{}, &ApplicationDeploymentList{})
+	SchemeBuilder.Register(&AppRollout{}, &AppRolloutList{})
+	SchemeBuilder.Register(&ApplicationRevision{}, &ApplicationRevisionList{})
+	SchemeBuilder.Register(&ApplicationContext{}, &ApplicationContextList{})
 }

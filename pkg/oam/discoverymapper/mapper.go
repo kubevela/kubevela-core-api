@@ -1,3 +1,19 @@
+/*
+Copyright 2021 The KubeVela Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package discoverymapper
 
 import (
@@ -14,6 +30,7 @@ type DiscoveryMapper interface {
 	Refresh() (meta.RESTMapper, error)
 	RESTMapping(gk schema.GroupKind, version ...string) (*meta.RESTMapping, error)
 	KindsFor(input schema.GroupVersionResource) ([]schema.GroupVersionKind, error)
+	ResourcesFor(input schema.GroupVersionKind) (schema.GroupVersionResource, error)
 }
 
 var _ DiscoveryMapper = &DefaultDiscoveryMapper{}
@@ -88,4 +105,15 @@ func (d *DefaultDiscoveryMapper) KindsFor(input schema.GroupVersionResource) ([]
 		mapping, err = mapper.KindsFor(input)
 	}
 	return mapping, err
+}
+
+// ResourcesFor will get a resource from GroupVersionKind
+func (d *DefaultDiscoveryMapper) ResourcesFor(input schema.GroupVersionKind) (schema.GroupVersionResource, error) {
+	var gvr schema.GroupVersionResource
+	mapping, err := d.RESTMapping(input.GroupKind(), input.Version)
+	if err != nil {
+		return gvr, err
+	}
+	gvr = mapping.Resource
+	return gvr, nil
 }

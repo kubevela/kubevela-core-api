@@ -1,3 +1,19 @@
+/*
+Copyright 2021 The KubeVela Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package v1alpha1
 
 import (
@@ -34,20 +50,24 @@ const (
 type RollingState string
 
 const (
-	// VerifyingState verify that the rollout setting is valid and the controller can locate both the
-	// target and the source
-	VerifyingState RollingState = "verifying"
-	// InitializingState rollout is initializing all the new resources
+	// VerifyingSpecState indicates that the rollout is in the stage of verifying the rollout settings
+	// and the controller can locate both the target and the source
+	VerifyingSpecState RollingState = "verifyingSpec"
+	// InitializingState indicates that the rollout is initializing all the new resources
 	InitializingState RollingState = "initializing"
-	// RollingInBatchesState rolling out
+	// RollingInBatchesState indicates that the rollout starts rolling
 	RollingInBatchesState RollingState = "rollingInBatches"
-	// FinalisingState finalize the rolling, possibly clean up the old resources, adjust traffic
+	// FinalisingState indicates that the rollout is finalizing, possibly clean up the old resources, adjust traffic
 	FinalisingState RollingState = "finalising"
-	// RolloutSucceedState rollout successfully completed to match the desired target state
+	// RolloutFailingState indicates that the rollout is failing
+	// one needs to finalize it before mark it as failed by cleaning up the old resources, adjust traffic
+	RolloutFailingState RollingState = "rolloutFailing"
+	// RolloutSucceedState indicates that rollout successfully completed to match the desired target state
 	RolloutSucceedState RollingState = "rolloutSucceed"
-	// RolloutFailedState rollout is failed, the target replica is not reached
-	// we can not move forward anymore
-	// we will let the client to decide when or whether to revert
+	// RolloutAbandoningState indicates that the rollout is abandoned, can be restarted. This is a terminal state
+	RolloutAbandoningState RollingState = "rolloutAbandoned"
+	// RolloutFailedState indicates that rollout is failed, the target replica is not reached
+	// we can not move forward anymore, we will let the client to decide when or whether to revert.
 	RolloutFailedState RollingState = "rolloutFailed"
 )
 
@@ -73,8 +93,9 @@ const (
 type RolloutPlan struct {
 
 	// RolloutStrategy defines strategies for the rollout plan
+	// The default is IncreaseFirstRolloutStrategyType
 	// +optional
-	RolloutStrategy *RolloutStrategyType `json:"rolloutStrategy,omitempty"`
+	RolloutStrategy RolloutStrategyType `json:"rolloutStrategy,omitempty"`
 
 	// The size of the target resource. The default is the same
 	// as the size of the source resource.
@@ -82,12 +103,11 @@ type RolloutPlan struct {
 	TargetSize *int32 `json:"targetSize,omitempty"`
 
 	// The number of batches, default = 1
-	// mutually exclusive to RolloutBatches
 	// +optional
 	NumBatches *int32 `json:"numBatches,omitempty"`
 
 	// The exact distribution among batches.
-	// mutually exclusive to NumBatches.
+	// its size has to be exactly the same as the NumBatches (if set)
 	// The total number cannot exceed the targetSize or the size of the source resource
 	// We will IGNORE the last batch's replica field if it's a percentage since round errors can lead to inaccurate sum
 	// We highly recommend to leave the last batch's replica field empty
@@ -99,7 +119,7 @@ type RolloutPlan struct {
 	// This is designed for the operators to manually rollout
 	// Default is the the number of batches which will rollout all the batches
 	// +optional
-	BatchPartition *int32 `json:"lastBatchToRollout,omitempty"`
+	BatchPartition *int32 `json:"batchPartition,omitempty"`
 
 	// Paused the rollout, default is false
 	// +optional
@@ -161,8 +181,11 @@ type RolloutWebhook struct {
 	// URL address of this webhook
 	URL string `json:"url"`
 
-	// Request timeout for this webhook
-	Timeout string `json:"timeout,omitempty"`
+	// Method the HTTP call method, default is POST
+	Method string `json:"method,omitempty"`
+
+	// ExpectedStatus contains all the expected http status code that we will accept as success
+	ExpectedStatus []int `json:"expectedStatus,omitempty"`
 
 	// Metadata (key-value pairs) for this webhook
 	// +optional
@@ -171,11 +194,14 @@ type RolloutWebhook struct {
 
 // RolloutWebhookPayload holds the info and metadata sent to webhooks
 type RolloutWebhookPayload struct {
-	// ResourceRef refers to the resource we are operating on
-	ResourceRef *runtimev1alpha1.TypedReference `json:"resourceRef"`
+	// Name of the upgrading resource
+	Name string `json:"name"`
 
-	// RolloutRef refers to the rollout that is controlling the rollout
-	RolloutRef *runtimev1alpha1.TypedReference `json:"rolloutRef"`
+	// Namespace of the upgrading resource
+	Namespace string `json:"namespace"`
+
+	// Phase of the rollout
+	Phase string `json:"phase"`
 
 	// Metadata (key-value pairs) are the extra data send to this webhook
 	Metadata map[string]string `json:"metadata,omitempty"`
@@ -214,6 +240,10 @@ type RolloutStatus struct {
 	// Conditions represents the latest available observations of a CloneSet's current state.
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
 
+	// RolloutTargetTotalSize is the size of the target resources. This is determined once the initial spec verification
+	// and does not change until the rollout is restarted
+	RolloutTargetTotalSize int32 `json:"rolloutTargetSize,omitempty"`
+
 	// NewPodTemplateIdentifier is a string that uniquely represent the new pod template
 	// each workload type could use different ways to identify that so we cannot compare between resources
 	NewPodTemplateIdentifier string `json:"targetGeneration,omitempty"`
@@ -237,6 +267,6 @@ type RolloutStatus struct {
 	// UpgradedReplicas is the number of Pods upgraded by the rollout controller
 	UpgradedReplicas int32 `json:"upgradedReplicas"`
 
-	// UpgradedReplicas is the number of Pods upgraded by the rollout controller that have a Ready Condition.
+	// UpgradedReadyReplicas is the number of Pods upgraded by the rollout controller that have a Ready Condition.
 	UpgradedReadyReplicas int32 `json:"upgradedReadyReplicas"`
 }

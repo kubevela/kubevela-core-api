@@ -1,3 +1,19 @@
+/*
+Copyright 2021 The KubeVela Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package v1alpha1
 
 import (
@@ -20,6 +36,9 @@ const (
 	// RollingRetriableFailureEvent indicates that we encountered an unexpected but retriable error
 	RollingRetriableFailureEvent RolloutEvent = "RollingRetriableFailureEvent"
 
+	// RollingModifiedEvent indicates that the rolling target or source has changed
+	RollingModifiedEvent RolloutEvent = "RollingModifiedEvent"
+
 	// RollingSpecVerifiedEvent indicates that we have successfully verified that the rollout spec
 	RollingSpecVerifiedEvent RolloutEvent = "RollingSpecVerifiedEvent"
 
@@ -39,11 +58,8 @@ const (
 	// FinishedOneBatchEvent indicates that we have successfully rolled out one batch
 	FinishedOneBatchEvent RolloutEvent = "FinishedOneBatchEvent"
 
-	// BatchRolloutContinueEvent indicates that we need to continue to upgrade the pods in the batch
-	BatchRolloutContinueEvent RolloutEvent = "BatchRolloutContinueEvent"
-
-	// BatchRolloutVerifyingEvent indicates that we are waiting for the approval of resume one batch
-	BatchRolloutVerifyingEvent RolloutEvent = "BatchRolloutVerifyingEvent"
+	// RolloutOneBatchEvent indicates that we have rollout one batch
+	RolloutOneBatchEvent RolloutEvent = "RolloutOneBatchEvent"
 
 	// OneBatchAvailableEvent indicates that the batch resource is considered available
 	// this events comes after we have examine the pod readiness check and traffic shifting if needed
@@ -54,31 +70,36 @@ const (
 
 	// BatchRolloutFailedEvent indicates that we are waiting for the approval of the
 	BatchRolloutFailedEvent RolloutEvent = "BatchRolloutFailedEvent"
-
-	// WorkloadModifiedEvent indicates that the res
-	WorkloadModifiedEvent RolloutEvent = "WorkloadModifiedEvent"
 )
 
 // These are valid conditions of the rollout.
 const (
-	// RolloutSpecVerified indicates that the rollout spec matches the resource we have in the cluster
-	RolloutSpecVerified runtimev1alpha1.ConditionType = "RolloutSpecVerified"
-	// RolloutInitialized means all the needed initialization work is done
-	RolloutInitialized runtimev1alpha1.ConditionType = "Initialized"
+	// RolloutSpecVerifying indicates that the rollout just started with verification
+	RolloutSpecVerifying runtimev1alpha1.ConditionType = "RolloutSpecVerifying"
+	// RolloutInitializing means we start to initialize the cluster
+	RolloutInitializing runtimev1alpha1.ConditionType = "RolloutInitializing"
 	// RolloutInProgress means we are upgrading resources.
-	RolloutInProgress runtimev1alpha1.ConditionType = "Ready"
+	RolloutInProgress runtimev1alpha1.ConditionType = "RolloutInProgress"
+	// RolloutFinalizing means the rollout is finalizing
+	RolloutFinalizing runtimev1alpha1.ConditionType = "RolloutFinalizing"
+	// RolloutFailing means the rollout is failing
+	RolloutFailing runtimev1alpha1.ConditionType = "RolloutFailing"
+	// RolloutAbandoning means that the rollout is being abandoned.
+	RolloutAbandoning runtimev1alpha1.ConditionType = "RolloutAbandoning"
+	// RolloutFailed means that the rollout failed.
+	RolloutFailed runtimev1alpha1.ConditionType = "RolloutFailed"
 	// RolloutSucceed means that the rollout is done.
-	RolloutSucceed runtimev1alpha1.ConditionType = "Succeed"
-	// BatchInitialized
-	BatchInitialized runtimev1alpha1.ConditionType = "BatchInitialized"
-	// BatchInRolled
-	BatchInRolled runtimev1alpha1.ConditionType = "BatchInRolled"
-	// BatchVerified
-	BatchVerified runtimev1alpha1.ConditionType = "BatchVerified"
+	RolloutSucceed runtimev1alpha1.ConditionType = "RolloutSucceed"
+	// BatchInitializing
+	BatchInitializing runtimev1alpha1.ConditionType = "BatchInitializing"
+	// BatchPaused
+	BatchPaused runtimev1alpha1.ConditionType = "BatchPaused"
+	// BatchVerifying
+	BatchVerifying runtimev1alpha1.ConditionType = "BatchVerifying"
 	// BatchRolloutFailed
 	BatchRolloutFailed runtimev1alpha1.ConditionType = "BatchRolloutFailed"
-	// BatchFinalized
-	BatchFinalized runtimev1alpha1.ConditionType = "BatchFinalized"
+	// BatchFinalizing
+	BatchFinalizing runtimev1alpha1.ConditionType = "BatchFinalizing"
 	// BatchReady
 	BatchReady runtimev1alpha1.ConditionType = "BatchReady"
 )
@@ -109,22 +130,25 @@ const invalidBatchRollingStateTransition = "the batch rolling state transition f
 func (r *RolloutStatus) getRolloutConditionType() runtimev1alpha1.ConditionType {
 	// figure out which condition type should we put in the condition depends on its state
 	switch r.RollingState {
-	case VerifyingState:
-		return RolloutSpecVerified
+	case VerifyingSpecState:
+		return RolloutSpecVerifying
 
 	case InitializingState:
-		return RolloutInitialized
+		return RolloutInitializing
 
 	case RollingInBatchesState:
 		switch r.BatchRollingState {
 		case BatchInitializingState:
-			return BatchInitialized
+			return BatchInitializing
 
 		case BatchVerifyingState:
-			return BatchVerified
+			return BatchVerifying
 
 		case BatchFinalizingState:
-			return BatchFinalized
+			return BatchFinalizing
+
+		case BatchRolloutFailedState:
+			return BatchRolloutFailed
 
 		case BatchReadyState:
 			return BatchReady
@@ -134,10 +158,22 @@ func (r *RolloutStatus) getRolloutConditionType() runtimev1alpha1.ConditionType 
 		}
 
 	case FinalisingState:
+		return RolloutFinalizing
+
+	case RolloutFailingState:
+		return RolloutFailing
+
+	case RolloutAbandoningState:
+		return RolloutAbandoning
+
+	case RolloutFailedState:
+		return RolloutFailed
+
+	case RolloutSucceedState:
 		return RolloutSucceed
 
 	default:
-		return RolloutSucceed
+		return RolloutFailed
 	}
 }
 
@@ -154,36 +190,96 @@ func (r *RolloutStatus) RolloutFailed(reason string) {
 	r.RollingState = RolloutFailedState
 }
 
+// RolloutFailing is a special state transition that always moves the rollout state to the failing state
+func (r *RolloutStatus) RolloutFailing(reason string) {
+	// set the condition first which depends on the state
+	r.SetConditions(NewNegativeCondition(r.getRolloutConditionType(), reason))
+	r.RollingState = RolloutFailingState
+	r.BatchRollingState = BatchInitializingState
+}
+
+// ResetStatus resets the status of the rollout to start from beginning
+func (r *RolloutStatus) ResetStatus() {
+	r.NewPodTemplateIdentifier = ""
+	r.RolloutTargetTotalSize = -1
+	r.LastAppliedPodTemplateIdentifier = ""
+	r.RollingState = VerifyingSpecState
+	r.BatchRollingState = BatchInitializingState
+	r.CurrentBatch = 0
+	r.UpgradedReplicas = 0
+	r.UpgradedReadyReplicas = 0
+}
+
+// SetRolloutCondition sets the supplied condition, replacing any existing condition
+// of the same type unless they are identical.
+func (r *RolloutStatus) SetRolloutCondition(new runtimev1alpha1.Condition) {
+	exists := false
+	for i, existing := range r.Conditions {
+		if existing.Type != new.Type {
+			continue
+		}
+		// we want to update the condition when the LTT changes
+		if existing.Type == new.Type &&
+			existing.Status == new.Status &&
+			existing.Reason == new.Reason &&
+			existing.Message == new.Message &&
+			existing.LastTransitionTime == new.LastTransitionTime {
+			exists = true
+			continue
+		}
+
+		r.Conditions[i] = new
+		exists = true
+	}
+	if !exists {
+		r.Conditions = append(r.Conditions, new)
+	}
+
+}
+
 // StateTransition is the center place to do rollout state transition
 // it returns an error if the transition is invalid
 // it changes the coming rollout state if it's valid
 func (r *RolloutStatus) StateTransition(event RolloutEvent) {
 	rollingState := r.RollingState
 	batchRollingState := r.BatchRollingState
-	defer klog.InfoS("try to execute a rollout state transition",
-		"pre rolling state", rollingState,
-		"pre batch rolling state", batchRollingState,
-		"post rolling state", r.RollingState,
-		"post batch rolling state", r.BatchRollingState)
+	defer func() {
+		klog.InfoS("try to execute a rollout state transition",
+			"pre rolling state", rollingState,
+			"pre batch rolling state", batchRollingState,
+			"post rolling state", r.RollingState,
+			"post batch rolling state", r.BatchRollingState)
+	}()
 
-	// we have special transition for these two types of event
+	// we have special transition for these types of event since they require additional info
 	if event == RollingFailedEvent || event == RollingRetriableFailureEvent {
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
 	}
+	// special handle modified event here
+	if event == RollingModifiedEvent {
+		if r.RollingState == RolloutFailedState || r.RollingState == RolloutSucceedState {
+			r.ResetStatus()
+		} else {
+			r.SetRolloutCondition(NewNegativeCondition(r.getRolloutConditionType(), "Rollout Spec is modified"))
+			r.RollingState = RolloutAbandoningState
+		}
+		return
+	}
 
 	switch rollingState {
-	case VerifyingState:
+	case VerifyingSpecState:
 		if event == RollingSpecVerifiedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.RollingState = InitializingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
 			return
 		}
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
 
 	case InitializingState:
 		if event == RollingInitializedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.RollingState = RollingInBatchesState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
+			r.BatchRollingState = BatchInitializingState
 			return
 		}
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
@@ -192,36 +288,34 @@ func (r *RolloutStatus) StateTransition(event RolloutEvent) {
 		r.batchStateTransition(event)
 		return
 
+	case RolloutAbandoningState:
+		if event == RollingFinalizedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
+			r.ResetStatus()
+			return
+		}
+		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
+
 	case FinalisingState:
 		if event == RollingFinalizedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.RollingState = RolloutSucceedState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
+			return
+		}
+		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
+
+	case RolloutFailingState:
+		if event == RollingFinalizedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
+			r.RollingState = RolloutFailedState
 			return
 		}
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
 
 	case RolloutSucceedState:
-		if event == WorkloadModifiedEvent {
-			r.RollingState = VerifyingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
-			return
-		}
-		if event == RollingFinalizedEvent {
-			// no op
-			return
-		}
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
 
 	case RolloutFailedState:
-		if event == WorkloadModifiedEvent {
-			r.RollingState = VerifyingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
-			return
-		}
-		if event == RollingFailedEvent {
-			// no op
-			return
-		}
 		panic(fmt.Errorf(invalidRollingStateTransition, rollingState, event))
 
 	default:
@@ -247,47 +341,41 @@ func (r *RolloutStatus) batchStateTransition(event RolloutEvent) {
 		panic(fmt.Errorf(invalidBatchRollingStateTransition, batchRollingState, event))
 
 	case BatchInRollingState:
-		if event == BatchRolloutContinueEvent {
-			// no op
-			return
-		}
-		if event == BatchRolloutVerifyingEvent {
+		if event == RolloutOneBatchEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.BatchRollingState = BatchVerifyingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
 			return
 		}
 		panic(fmt.Errorf(invalidBatchRollingStateTransition, batchRollingState, event))
 
 	case BatchVerifyingState:
 		if event == OneBatchAvailableEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.BatchRollingState = BatchFinalizingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
-			return
-		}
-		if event == BatchRolloutVerifyingEvent {
-			// no op
 			return
 		}
 		panic(fmt.Errorf(invalidBatchRollingStateTransition, batchRollingState, event))
 
 	case BatchFinalizingState:
 		if event == FinishedOneBatchEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.BatchRollingState = BatchReadyState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
 			return
 		}
 		if event == AllBatchFinishedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			// transition out of the batch loop
+			r.BatchRollingState = BatchReadyState
 			r.RollingState = FinalisingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
 			return
 		}
 		panic(fmt.Errorf(invalidBatchRollingStateTransition, batchRollingState, event))
 
 	case BatchReadyState:
 		if event == BatchRolloutApprovedEvent {
+			r.SetRolloutCondition(NewPositiveCondition(r.getRolloutConditionType()))
 			r.BatchRollingState = BatchInitializingState
-			r.SetConditions(NewPositiveCondition(r.getRolloutConditionType()))
+			r.CurrentBatch++
 			return
 		}
 		panic(fmt.Errorf(invalidBatchRollingStateTransition, batchRollingState, event))

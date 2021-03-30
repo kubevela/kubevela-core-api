@@ -17,56 +17,22 @@ limitations under the License.
 package v1alpha2
 
 import (
+	runtimev1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	runtimev1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
+	"github.com/oam-dev/kubevela-core-api/apis/types"
 )
-
-// CUE defines the encapsulation in CUE format
-type CUE struct {
-	// Template defines the abstraction template data of the capability, it will replace the old CUE template in extension field.
-	// Template is a required field if CUE is defined in Capability Definition.
-	Template string `json:"template"`
-}
-
-// Schematic defines the encapsulation of this capability(workload/trait/scope),
-// the encapsulation can be defined in different ways, e.g. CUE/HCL(terraform)/KUBE(K8s Object)/HELM, etc...
-type Schematic struct {
-	CUE *CUE `json:"cue,omitempty"`
-	// TODO(wonderflow): support HCL(terraform)/KUBE(K8s Object)/HELM here.
-}
-
-// A DefinitionReference refers to a CustomResourceDefinition by name.
-type DefinitionReference struct {
-	// Name of the referenced CustomResourceDefinition.
-	Name string `json:"name"`
-
-	// Version indicate which version should be used if CRD has multiple versions
-	// by default it will use the first one if not specified
-	Version string `json:"version,omitempty"`
-}
-
-// A ChildResourceKind defines a child Kubernetes resource kind with a selector
-type ChildResourceKind struct {
-	// APIVersion of the child resource
-	APIVersion string `json:"apiVersion"`
-
-	// Kind of the child resource
-	Kind string `json:"kind"`
-
-	// Selector to select the child resources that the workload wants to expose to traits
-	Selector map[string]string `json:"selector,omitempty"`
-}
 
 // A WorkloadDefinitionSpec defines the desired state of a WorkloadDefinition.
 type WorkloadDefinitionSpec struct {
 	// Reference to the CustomResourceDefinition that defines this workload kind.
-	Reference DefinitionReference `json:"definitionRef"`
+	Reference common.DefinitionReference `json:"definitionRef"`
 
 	// ChildResourceKinds are the list of GVK of the child resources this workload generates
-	ChildResourceKinds []ChildResourceKind `json:"childResourceKinds,omitempty"`
+	ChildResourceKinds []common.ChildResourceKind `json:"childResourceKinds,omitempty"`
 
 	// RevisionLabel indicates which label for underlying resources(e.g. pods) of this workload
 	// can be used by trait to create resource selectors(e.g. label selector for pods).
@@ -80,16 +46,11 @@ type WorkloadDefinitionSpec struct {
 
 	// Status defines the custom health policy and status message for workload
 	// +optional
-	Status *Status `json:"status,omitempty"`
-
-	// Template defines the abstraction template data of the workload, it will replace the old template in extension field.
-	// the data format depends on templateType, by default it's CUE
-	// +optional
-	Template string `json:"template,omitempty"`
+	Status *common.Status `json:"status,omitempty"`
 
 	// Schematic defines the data format and template of the encapsulation of the workload
 	// +optional
-	Schematic *Schematic `json:"schematic,omitempty"`
+	Schematic *common.Schematic `json:"schematic,omitempty"`
 
 	// Extension is used for extension needs by OAM platform builders
 	// +optional
@@ -97,14 +58,9 @@ type WorkloadDefinitionSpec struct {
 	Extension *runtime.RawExtension `json:"extension,omitempty"`
 }
 
-// Status defines the loop back status of the abstraction by using CUE template
-type Status struct {
-	// CustomStatus defines the custom status message that could display to user
-	// +optional
-	CustomStatus string `json:"customStatus,omitempty"`
-	// HealthPolicy defines the health check policy for the abstraction
-	// +optional
-	HealthPolicy string `json:"healthPolicy,omitempty"`
+// WorkloadDefinitionStatus is the status of WorkloadDefinition
+type WorkloadDefinitionStatus struct {
+	runtimev1alpha1.ConditionedStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
@@ -114,12 +70,23 @@ type Status struct {
 // is used to validate the schema of the workload when it is embedded in an OAM
 // Component.
 // +kubebuilder:printcolumn:JSONPath=".spec.definitionRef.name",name=DEFINITION-NAME,type=string
-// +kubebuilder:resource:scope=Namespaced,categories={crossplane,oam}
+// +kubebuilder:resource:scope=Namespaced,categories={oam}
 type WorkloadDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec WorkloadDefinitionSpec `json:"spec,omitempty"`
+	Spec   WorkloadDefinitionSpec   `json:"spec,omitempty"`
+	Status WorkloadDefinitionStatus `json:"status,omitempty"`
+}
+
+// SetConditions set condition for WorkloadDefinition
+func (wd *WorkloadDefinition) SetConditions(c ...runtimev1alpha1.Condition) {
+	wd.Status.SetConditions(c...)
+}
+
+// GetCondition gets condition from WorkloadDefinition
+func (wd *WorkloadDefinition) GetCondition(conditionType runtimev1alpha1.ConditionType) runtimev1alpha1.Condition {
+	return wd.Status.GetCondition(conditionType)
 }
 
 // +kubebuilder:object:root=true
@@ -134,7 +101,7 @@ type WorkloadDefinitionList struct {
 // A TraitDefinitionSpec defines the desired state of a TraitDefinition.
 type TraitDefinitionSpec struct {
 	// Reference to the CustomResourceDefinition that defines this trait kind.
-	Reference DefinitionReference `json:"definitionRef,omitempty"`
+	Reference common.DefinitionReference `json:"definitionRef,omitempty"`
 
 	// Revision indicates whether a trait is aware of component revision
 	// +optional
@@ -165,16 +132,24 @@ type TraitDefinitionSpec struct {
 
 	// Schematic defines the data format and template of the encapsulation of the trait
 	// +optional
-	Schematic *Schematic `json:"schematic,omitempty"`
+	Schematic *common.Schematic `json:"schematic,omitempty"`
 
 	// Status defines the custom health policy and status message for trait
 	// +optional
-	Status *Status `json:"status,omitempty"`
+	Status *common.Status `json:"status,omitempty"`
 
 	// Extension is used for extension needs by OAM platform builders
 	// +optional
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Extension *runtime.RawExtension `json:"extension,omitempty"`
+}
+
+// TraitDefinitionStatus is the status of TraitDefinition
+type TraitDefinitionStatus struct {
+	// ConditionedStatus reflects the observed status of a resource
+	runtimev1alpha1.ConditionedStatus `json:",inline"`
+	// ConfigMapRef refer to a ConfigMap which contains OpenAPI V3 JSON schema of Component parameters.
+	ConfigMapRef string `json:"configMapRef,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -184,12 +159,24 @@ type TraitDefinitionSpec struct {
 // to validate the schema of the trait when it is embedded in an OAM
 // ApplicationConfiguration.
 // +kubebuilder:printcolumn:JSONPath=".spec.definitionRef.name",name=DEFINITION-NAME,type=string
-// +kubebuilder:resource:scope=Namespaced,categories={crossplane,oam}
+// +kubebuilder:resource:scope=Namespaced,categories={oam}
+// +kubebuilder:subresource:status
 type TraitDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec TraitDefinitionSpec `json:"spec,omitempty"`
+	Spec   TraitDefinitionSpec   `json:"spec,omitempty"`
+	Status TraitDefinitionStatus `json:"status,omitempty"`
+}
+
+// SetConditions set condition for TraitDefinition
+func (td *TraitDefinition) SetConditions(c ...runtimev1alpha1.Condition) {
+	td.Status.SetConditions(c...)
+}
+
+// GetCondition gets condition from TraitDefinition
+func (td *TraitDefinition) GetCondition(conditionType runtimev1alpha1.ConditionType) runtimev1alpha1.Condition {
+	return td.Status.GetCondition(conditionType)
 }
 
 // +kubebuilder:object:root=true
@@ -204,7 +191,7 @@ type TraitDefinitionList struct {
 // A ScopeDefinitionSpec defines the desired state of a ScopeDefinition.
 type ScopeDefinitionSpec struct {
 	// Reference to the CustomResourceDefinition that defines this scope kind.
-	Reference DefinitionReference `json:"definitionRef"`
+	Reference common.DefinitionReference `json:"definitionRef"`
 
 	// WorkloadRefsPath indicates if/where a scope accepts workloadRef objects
 	WorkloadRefsPath string `json:"workloadRefsPath,omitempty"`
@@ -226,7 +213,7 @@ type ScopeDefinitionSpec struct {
 // to validate the schema of the scope when it is embedded in an OAM
 // ApplicationConfiguration.
 // +kubebuilder:printcolumn:JSONPath=".spec.definitionRef.name",name=DEFINITION-NAME,type=string
-// +kubebuilder:resource:scope=Namespaced,categories={crossplane,oam}
+// +kubebuilder:resource:scope=Namespaced,categories={oam}
 type ScopeDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -277,6 +264,10 @@ type ComponentSpec struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Workload runtime.RawExtension `json:"workload"`
 
+	// HelmRelease records a Helm release used by a Helm module workload.
+	// +optional
+	Helm *common.Helm `json:"helm,omitempty"`
+
 	// Parameters exposed by this component. ApplicationConfigurations that
 	// reference this component may specify values for these parameters, which
 	// will in turn be injected into the embedded workload.
@@ -294,21 +285,15 @@ type ComponentStatus struct {
 
 	// LatestRevision of component
 	// +optional
-	LatestRevision *Revision `json:"latestRevision,omitempty"`
+	LatestRevision *common.Revision `json:"latestRevision,omitempty"`
 
 	// One Component should only be used by one AppConfig
-}
-
-// Revision has name and revision number
-type Revision struct {
-	Name     string `json:"name"`
-	Revision int64  `json:"revision"`
 }
 
 // +kubebuilder:object:root=true
 
 // A Component describes how an OAM workload kind may be instantiated.
-// +kubebuilder:resource:categories={crossplane,oam}
+// +kubebuilder:resource:categories={oam}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:JSONPath=".spec.workload.kind",name=WORKLOAD-KIND,type=string
 // +kubebuilder:printcolumn:name="age",type="date",JSONPath=".metadata.creationTimestamp"
@@ -495,6 +480,9 @@ type ApplicationConfigurationStatus struct {
 
 	Dependency DependencyStatus `json:"dependency,omitempty"`
 
+	// RollingStatus indicates what phase are we in the rollout phase
+	RollingStatus types.RollingStatus `json:"rollingStatus,omitempty"`
+
 	// Workloads created by this ApplicationConfiguration.
 	Workloads []WorkloadStatus `json:"workloads,omitempty"`
 
@@ -535,7 +523,7 @@ type DependencyToObject struct {
 // +kubebuilder:object:root=true
 
 // An ApplicationConfiguration represents an OAM application.
-// +kubebuilder:resource:shortName=appconfig,categories={crossplane,oam}
+// +kubebuilder:resource:shortName=appconfig,categories={oam}
 // +kubebuilder:subresource:status
 type ApplicationConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -567,7 +555,49 @@ type DataOutput struct {
 	// If no conditions is specified, it is by default to check output value not empty.
 	// +optional
 	Conditions []ConditionRequirement `json:"conditions,omitempty"`
+	// OutputStore specifies the object used to store intermediate data generated by Operations
+	OutputStore StoreReference `json:"outputStore,omitempty"`
 }
+
+// StoreReference specifies the referenced object in DataOutput or DataInput
+type StoreReference struct {
+	runtimev1alpha1.TypedReference `json:",inline"`
+	// Operations specify the data processing operations
+	Operations []DataOperation `json:"operations,omitempty"`
+}
+
+// DataOperation defines the specific operation for data
+type DataOperation struct {
+	// Type specifies the type of DataOperation
+	Type string `json:"type"`
+	// Operator specifies the operation under this DataOperation type
+	Operator DataOperator `json:"op"`
+	// ToFieldPath refers to the value of an object's field
+	ToFieldPath string `json:"toFieldPath"`
+	// ToDataPath refers to the value of an object's specfied by ToDataPath. For example the ToDataPath "redis" specifies "redis info" in '{"redis":"redis info"}'
+	ToDataPath string `json:"toDataPath,omitempty"`
+	// +optional
+	// Value specifies an expected value
+	// This is mutually exclusive with ValueFrom
+	Value string `json:"value,omitempty"`
+	// +optional
+	// ValueFrom specifies expected value from object such as workload and trait
+	// This is mutually exclusive with Value
+	ValueFrom  ValueFrom              `json:"valueFrom,omitempty"`
+	Conditions []ConditionRequirement `json:"conditions,omitempty"`
+}
+
+// DataOperator defines the type of Operator in DataOperation
+type DataOperator string
+
+const (
+	// AddOperator specifies the add operation for data passing
+	AddOperator DataOperator = "add"
+	// DeleteOperator specifies the delete operation for data passing
+	DeleteOperator DataOperator = "delete"
+	// ReplaceOperator specifies the replace operation for data passing
+	ReplaceOperator DataOperator = "replace"
+)
 
 // DataInput specifies a data input sink to an object.
 // If input is array, it will be appended to the target field paths.
@@ -583,6 +613,12 @@ type DataInput struct {
 	// If StrategyMergeKeys specified, we will check the key in the target array.
 	// If any key exist, do update; if no key exist, append.
 	StrategyMergeKeys []string `json:"strategyMergeKeys,omitempty"`
+
+	// When the Conditions is satified, ToFieldPaths will be filled with passed value
+	Conditions []ConditionRequirement `json:"conditions,omitempty"`
+
+	// InputStore specifies the object used to read intermediate data genereted by DataOutput
+	InputStore StoreReference `json:"inputStore,omitempty"`
 }
 
 // DataInputValueFrom specifies the value source for a data input.

@@ -21,12 +21,18 @@ package oam
 const (
 	// LabelAppName records the name of AppConfig
 	LabelAppName = "app.oam.dev/name"
+	// LabelAppRevision records the name of Application, it's equal to name of AppConfig created by Application
+	LabelAppRevision = "app.oam.dev/appRevision"
+	// LabelAppDeployment records the name of AppDeployment.
+	LabelAppDeployment = "app.oam.dev/appDeployment"
 	// LabelAppComponent records the name of Component
 	LabelAppComponent = "app.oam.dev/component"
 	// LabelAppComponentRevision records the revision name of Component
 	LabelAppComponentRevision = "app.oam.dev/revision"
 	// LabelOAMResourceType whether a CR is workload or trait
 	LabelOAMResourceType = "app.oam.dev/resourceType"
+	// LabelAppRevisionHash records the Hash value of the application revision
+	LabelAppRevisionHash = "app.oam.dev/app-revision-hash"
 
 	// WorkloadTypeLabel indicates the type of the workloadDefinition
 	WorkloadTypeLabel = "workload.oam.dev/type"
@@ -52,6 +58,23 @@ const (
 	AnnotationLastAppliedConfig = "app.oam.dev/last-applied-configuration"
 
 	// AnnotationAppRollout indicates that the application is still rolling out
-	// the application controller will not reconcile it yet
+	// the application controller should treat it differently
 	AnnotationAppRollout = "app.oam.dev/rollout-template"
+
+	// AnnotationInplaceUpgrade indicates the workload should upgrade with the the same name
+	// the name of the workload instance should not changing along with the revision
+	AnnotationInplaceUpgrade = "app.oam.dev/inplace-upgrade"
+
+	// AnnotationRollingComponent indicates that the component is rolling out
+	// this is to enable any concerned controllers to handle the first component apply logic differently
+	// the value of the annotation is a list of component name of all the new component
+	AnnotationRollingComponent = "app.oam.dev/rolling-components"
+
+	// AnnotationAppRevision indicates that the object is an application revision
+	//	its controller should not try to reconcile it
+	AnnotationAppRevision = "app.oam.dev/app-revision"
+
+	// AnnotationAppRevisionOnly the Application update should only generate revision,
+	// not any appContexts or components.
+	AnnotationAppRevisionOnly = "app.oam.dev/revision-only"
 )
