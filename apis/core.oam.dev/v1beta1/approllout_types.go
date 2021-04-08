@@ -41,10 +41,11 @@ type AppRolloutSpec struct {
 	// RolloutPlan is the details on how to rollout the resources
 	RolloutPlan v1alpha1.RolloutPlan `json:"rolloutPlan"`
 
-	// RevertOnDelete revert the rollout when the rollout CR is deleted
-	// It will remove the target app from the kubernetes if it's set to true
+	// RevertOnDelete revert the failed rollout when the rollout CR is deleted
+	// It will revert the change back to the source version at once (not in batches)
+	// Default is false
 	// +optional
-	RevertOnDelete *bool `json:"revertOnDelete,omitempty"`
+	RevertOnDelete bool `json:"revertOnDelete,omitempty"`
 }
 
 // AppRolloutStatus defines the observed state of AppRollout
@@ -62,9 +63,15 @@ type AppRolloutStatus struct {
 
 // AppRollout is the Schema for the AppRollout API
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:categories={oam}
+// +kubebuilder:resource:categories={oam},shortName=approllout;rollout
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
+// +kubebuilder:printcolumn:name="TARGET",type=string,JSONPath=`.status.rolloutTargetSize`
+// +kubebuilder:printcolumn:name="UPGRADED",type=string,JSONPath=`.status.upgradedReplicas`
+// +kubebuilder:printcolumn:name="READY",type=string,JSONPath=`.status.upgradedReadyReplicas`
+// +kubebuilder:printcolumn:name="BATCH-STATE",type=string,JSONPath=`.status.batchRollingState`
+// +kubebuilder:printcolumn:name="ROLLING-STATE",type=string,JSONPath=`.status.rollingState`
+// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 type AppRollout struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
