@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeVela Authors.
+Copyright 2021 The KubeVela Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ type WorkloadDefinitionStatus struct {
 // Component.
 // +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=workload
 // +kubebuilder:printcolumn:name="DEFINITION-NAME",type=string,JSONPath=".spec.definitionRef.name"
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 type WorkloadDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -112,6 +111,10 @@ type TraitDefinitionSpec struct {
 	// +optional
 	WorkloadRefPath string `json:"workloadRefPath,omitempty"`
 
+	// PodDisruptive specifies whether using the trait will cause the pod to restart or not.
+	// +optional
+	PodDisruptive bool `json:"podDisruptive,omitempty"`
+
 	// AppliesToWorkloads specifies the list of workload kinds this trait
 	// applies to. Workload kinds are specified in kind.group/version format,
 	// e.g. server.core.oam.dev/v1alpha2. Traits that omit this field apply to
@@ -151,6 +154,9 @@ type TraitDefinitionStatus struct {
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
 	// ConfigMapRef refer to a ConfigMap which contains OpenAPI V3 JSON schema of Component parameters.
 	ConfigMapRef string `json:"configMapRef,omitempty"`
+	// LatestRevision of the trait definition
+	// +optional
+	LatestRevision *common.Revision `json:"latestRevision,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -163,7 +169,6 @@ type TraitDefinitionStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="APPLIES-TO",type=string,JSONPath=".spec.appliesToWorkloads"
 // +kubebuilder:printcolumn:name="DESCRIPTION",type=string,JSONPath=".metadata.annotations.definition\\.oam\\.dev/description"
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 type TraitDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -216,7 +221,7 @@ type ScopeDefinitionSpec struct {
 // to validate the schema of the scope when it is embedded in an OAM
 // ApplicationConfiguration.
 // +kubebuilder:printcolumn:JSONPath=".spec.definitionRef.name",name=DEFINITION-NAME,type=string
-// +kubebuilder:resource:scope=Namespaced,categories={oam}
+// +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=scope
 type ScopeDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -24,6 +24,7 @@ import (
 	"hash/fnv"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -46,6 +47,7 @@ import (
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam/discoverymapper"
 )
@@ -95,8 +97,21 @@ const (
 	// ErrUpdateCapabilityInConfigMap is the error while creating or updating a capability
 	ErrUpdateCapabilityInConfigMap = "cannot create or update capability %s in ConfigMap: %v"
 
+	// ErrUpdateComponentDefinition is the error while update ComponentDefinition
+	ErrUpdateComponentDefinition = "cannot update ComponentDefinition %s: %v"
+	// ErrUpdateTraitDefinition is the error while update TraitDefinition
+	ErrUpdateTraitDefinition = "cannot update TraitDefinition %s: %v"
+
 	// ErrCreateConvertedWorklaodDefinition is the error while apply a WorkloadDefinition
 	ErrCreateConvertedWorklaodDefinition = "cannot create converted WorkloadDefinition %s: %v"
+
+	// ErrRefreshPackageDiscover is the error while refresh PackageDiscover
+	ErrRefreshPackageDiscover = "cannot discover the open api of the CRD : %v"
+
+	// ErrGenerateDefinitionRevision is the error while generate DefinitionRevision
+	ErrGenerateDefinitionRevision = "cannot generate DefinitionRevision of %s: %v"
+	// ErrCreateOrUpdateDefinitionRevision is the error while create or update DefinitionRevision
+	ErrCreateOrUpdateDefinitionRevision = "cannot create or update DefinitionRevision %s: %v"
 )
 
 // WorkloadType describe the workload type of ComponentDefinition
@@ -693,8 +708,8 @@ func MergeMapOverrideWithDst(src, dst map[string]string) map[string]string {
 }
 
 // ConvertComponentDef2WorkloadDef help convert a ComponentDefinition to WorkloadDefinition
-func ConvertComponentDef2WorkloadDef(dm discoverymapper.DiscoveryMapper, componentDef *v1alpha2.ComponentDefinition,
-	workloadDef *v1alpha2.WorkloadDefinition) error {
+func ConvertComponentDef2WorkloadDef(dm discoverymapper.DiscoveryMapper, componentDef *v1beta1.ComponentDefinition,
+	workloadDef *v1beta1.WorkloadDefinition) error {
 	if len(componentDef.Spec.Workload.Type) > 1 {
 		return errors.New("No need to convert ComponentDefinition")
 	}
@@ -715,4 +730,42 @@ func ConvertComponentDef2WorkloadDef(dm discoverymapper.DiscoveryMapper, compone
 	workloadDef.Spec.Status = componentDef.Spec.Status
 	workloadDef.Spec.Schematic = componentDef.Spec.Schematic
 	return nil
+}
+
+// ExtractRevisionNum  extract revision number from appRevision name
+func ExtractRevisionNum(appRevision string) (int, error) {
+	splits := strings.Split(appRevision, "-")
+	// check some bad appRevision name, eg:v1, appv2
+	if len(splits) == 1 {
+		return 0, fmt.Errorf("bad revison name")
+	}
+	// check some bad appRevision name, eg:myapp-a1
+	if !strings.HasPrefix(splits[len(splits)-1], "v") {
+		return 0, fmt.Errorf("bad revison name")
+	}
+	return strconv.Atoi(strings.TrimPrefix(splits[len(splits)-1], "v"))
+}
+
+// Min for int
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// Max for int
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// Abs for int
+func Abs(a int) int {
+	if a < 0 {
+		return -a
+	}
+	return a
 }

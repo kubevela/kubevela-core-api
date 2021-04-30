@@ -20,6 +20,7 @@ import (
 	runtimev1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 )
@@ -71,7 +72,6 @@ type WorkloadDefinitionStatus struct {
 // +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="DEFINITION-NAME",type=string,JSONPath=".spec.definitionRef.name"
 // +kubebuilder:printcolumn:name="DESCRIPTION",type=string,JSONPath=".metadata.annotations.definition\\.oam\\.dev/description"
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 type WorkloadDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -112,6 +112,10 @@ type TraitDefinitionSpec struct {
 	// +optional
 	WorkloadRefPath string `json:"workloadRefPath,omitempty"`
 
+	// PodDisruptive specifies whether using the trait will cause the pod to restart or not.
+	// +optional
+	PodDisruptive bool `json:"podDisruptive,omitempty"`
+
 	// AppliesToWorkloads specifies the list of workload kinds this trait
 	// applies to. Workload kinds are specified in kind.group/version format,
 	// e.g. server.core.oam.dev/v1alpha2. Traits that omit this field apply to
@@ -151,6 +155,9 @@ type TraitDefinitionStatus struct {
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
 	// ConfigMapRef refer to a ConfigMap which contains OpenAPI V3 JSON schema of Component parameters.
 	ConfigMapRef string `json:"configMapRef,omitempty"`
+	// LatestRevision of the component definition
+	// +optional
+	LatestRevision *common.Revision `json:"latestRevision,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -164,7 +171,6 @@ type TraitDefinitionStatus struct {
 // +kubebuilder:storageversion
 // +kubebuilder:printcolumn:name="APPLIES-TO",type=string,JSONPath=".spec.appliesToWorkloads"
 // +kubebuilder:printcolumn:name="DESCRIPTION",type=string,JSONPath=".metadata.annotations.definition\\.oam\\.dev/description"
-// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
 type TraitDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -217,7 +223,7 @@ type ScopeDefinitionSpec struct {
 // to validate the schema of the scope when it is embedded in an OAM
 // ApplicationConfiguration.
 // +kubebuilder:printcolumn:JSONPath=".spec.definitionRef.name",name=DEFINITION-NAME,type=string
-// +kubebuilder:resource:scope=Namespaced,categories={oam}
+// +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=scope
 // +kubebuilder:storageversion
 type ScopeDefinition struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -236,12 +242,41 @@ type ScopeDefinitionList struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // An ResourceTracker represents a tracker for track cross namespace resources
-// +kubebuilder:resource:scope=Cluster,categories={oam}
+// +kubebuilder:resource:scope=Cluster,categories={oam},shortName=tracker
 type ResourceTracker struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Status ResourceTrackerStatus `json:"status,omitempty"`
+}
+
+// ResourceTrackerStatus define the status of resourceTracker
+type ResourceTrackerStatus struct {
+	TrackedResources []TypedReference `json:"trackedResources,omitempty"`
+}
+
+// A TypedReference refers to an object by Name, Kind, and APIVersion. It is
+// commonly used to reference across-namespace objects
+type TypedReference struct {
+	// APIVersion of the referenced object.
+	APIVersion string `json:"apiVersion"`
+
+	// Kind of the referenced object.
+	Kind string `json:"kind"`
+
+	// Name of the referenced object.
+	Name string `json:"name"`
+
+	// Namespace of the objects outside the application namespace.
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
+
+	// UID of the referenced object.
+	// +optional
+	UID types.UID `json:"uid,omitempty"`
 }
 
 // +kubebuilder:object:root=true

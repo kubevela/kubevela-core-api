@@ -1,5 +1,5 @@
 /*
-Copyright 2020 The KubeVela Authors.
+Copyright 2021 The KubeVela Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ type AppRolloutStatus struct {
 
 // AppRollout is the Schema for the AppRollout API
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:categories={oam},shortName=approllout;rollout
+// +kubebuilder:resource:categories={oam},shortName=approllout
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="TARGET",type=string,JSONPath=`.status.rolloutStatus.rolloutTargetSize`
 // +kubebuilder:printcolumn:name="UPGRADED",type=string,JSONPath=`.status.rolloutStatus.upgradedReplicas`
