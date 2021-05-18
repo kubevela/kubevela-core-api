@@ -762,6 +762,9 @@ func MergeMapOverrideWithDst(src, dst map[string]string) map[string]string {
 // ConvertComponentDef2WorkloadDef help convert a ComponentDefinition to WorkloadDefinition
 func ConvertComponentDef2WorkloadDef(dm discoverymapper.DiscoveryMapper, componentDef *v1beta1.ComponentDefinition,
 	workloadDef *v1beta1.WorkloadDefinition) error {
+	if len(componentDef.Spec.Workload.Type) > 1 {
+		return errors.New("No need to convert ComponentDefinition")
+	}
 	var reference common.DefinitionReference
 	reference, err := ConvertWorkloadGVK2Definition(dm, componentDef.Spec.Workload.Definition)
 	if err != nil {
