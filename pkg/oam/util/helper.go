@@ -30,7 +30,6 @@ import (
 
 	cpv1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -42,6 +41,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -101,6 +101,10 @@ const (
 	ErrUpdateComponentDefinition = "cannot update ComponentDefinition %s: %v"
 	// ErrUpdateTraitDefinition is the error while update TraitDefinition
 	ErrUpdateTraitDefinition = "cannot update TraitDefinition %s: %v"
+	// ErrUpdatePolicyDefinition is the error while update PolicyDefinition
+	ErrUpdatePolicyDefinition = "cannot update PolicyDefinition %s: %v"
+	// ErrUpdateWorkflowStepDefinition is the error while update WorkflowStepDefinition
+	ErrUpdateWorkflowStepDefinition = "cannot update WorkflowStepDefinition %s: %v"
 
 	// ErrCreateConvertedWorklaodDefinition is the error while apply a WorkloadDefinition
 	ErrCreateConvertedWorklaodDefinition = "cannot create converted WorkloadDefinition %s: %v"
@@ -126,6 +130,9 @@ const (
 
 	// HELMDef describe a workload refer to HELM
 	HELMDef WorkloadType = "HelmDef"
+
+	// TerraformDef describes a workload refer to Terraform
+	TerraformDef WorkloadType = "TerraformDef"
 
 	// ReferWorkload describe an existing workload
 	ReferWorkload WorkloadType = "ReferWorkload"
@@ -186,25 +193,25 @@ func LocateParentAppConfig(ctx context.Context, client client.Client, oamObject 
 }
 
 // FetchWorkload fetch the workload that a trait refers to
-func FetchWorkload(ctx context.Context, c client.Client, mLog logr.Logger, oamTrait oam.Trait) (
+func FetchWorkload(ctx context.Context, c client.Client, oamTrait oam.Trait) (
 	*unstructured.Unstructured, error) {
 	var workload unstructured.Unstructured
 	workloadRef := oamTrait.GetWorkloadReference()
 	if len(workloadRef.Kind) == 0 || len(workloadRef.APIVersion) == 0 || len(workloadRef.Name) == 0 {
 		err := errors.New("no workload reference")
-		mLog.Error(err, ErrLocateWorkload)
+		klog.InfoS(ErrLocateWorkload, "err", err)
 		return nil, err
 	}
 	workload.SetAPIVersion(workloadRef.APIVersion)
 	workload.SetKind(workloadRef.Kind)
 	wn := client.ObjectKey{Name: workloadRef.Name, Namespace: oamTrait.GetNamespace()}
 	if err := c.Get(ctx, wn, &workload); err != nil {
-		mLog.Error(err, "Workload not find", "kind", workloadRef.Kind, "workload name", workloadRef.Name)
+		klog.InfoS("Failed to find workload", "kind", workloadRef.Kind, "workload name", workloadRef.Name,
+			"err", err)
 		return nil, err
 	}
-	mLog.Info("Get the workload the trait is pointing to", "workload name", workload.GetName(),
-		"workload APIVersion", workload.GetAPIVersion(), "workload Kind", workload.GetKind(), "workload UID",
-		workload.GetUID())
+	klog.InfoS("Get the workload the trait is pointing to", "workload", klog.KRef(workload.GetNamespace(), workload.GetName()),
+		"APIVersion", workload.GetAPIVersion(), "Kind", workload.GetKind(), "UID", workload.GetUID())
 	return &workload, nil
 }
 
@@ -351,6 +358,10 @@ func GetCapabilityDefinition(ctx context.Context, cli client.Reader, definition 
 		*def = defRev.Spec.ComponentDefinition
 	case *v1beta1.TraitDefinition:
 		*def = defRev.Spec.TraitDefinition
+	case *v1beta1.PolicyDefinition:
+		*def = defRev.Spec.PolicyDefinition
+	case *v1beta1.WorkflowStepDefinition:
+		*def = defRev.Spec.WorkflowStepDefinition
 	default:
 	}
 	return nil
@@ -391,7 +402,7 @@ func checkRequestNamespaceError(err error) bool {
 }
 
 // FetchWorkloadChildResources fetch corresponding child resources given a workload
-func FetchWorkloadChildResources(ctx context.Context, mLog logr.Logger, r client.Reader,
+func FetchWorkloadChildResources(ctx context.Context, r client.Reader,
 	dm discoverymapper.DiscoveryMapper, workload *unstructured.Unstructured) ([]*unstructured.Unstructured, error) {
 	// Fetch the corresponding workloadDefinition CR
 	workloadDefinition, err := FetchWorkloadDefinition(ctx, r, dm, workload)
@@ -402,10 +413,10 @@ func FetchWorkloadChildResources(ctx context.Context, mLog logr.Logger, r client
 		}
 		return nil, err
 	}
-	return fetchChildResources(ctx, mLog, r, workload, workloadDefinition.Spec.ChildResourceKinds)
+	return fetchChildResources(ctx, r, workload, workloadDefinition.Spec.ChildResourceKinds)
 }
 
-func fetchChildResources(ctx context.Context, mLog logr.Logger, r client.Reader, workload *unstructured.Unstructured,
+func fetchChildResources(ctx context.Context, r client.Reader, workload *unstructured.Unstructured,
 	wcrl []common.ChildResourceKind) ([]*unstructured.Unstructured, error) {
 	var childResources []*unstructured.Unstructured
 	// list by each child resource type with namespace and possible label selector
@@ -413,20 +424,21 @@ func fetchChildResources(ctx context.Context, mLog logr.Logger, r client.Reader,
 		crs := unstructured.UnstructuredList{}
 		crs.SetAPIVersion(wcr.APIVersion)
 		crs.SetKind(wcr.Kind)
-		mLog.Info("List child resource kind", "APIVersion", wcr.APIVersion, "Type", wcr.Kind, "owner UID",
+		klog.InfoS("List child resources", "apiVersion", wcr.APIVersion, "kind", wcr.Kind, "owner UID",
 			workload.GetUID())
 		if err := r.List(ctx, &crs, client.InNamespace(workload.GetNamespace()),
 			client.MatchingLabels(wcr.Selector)); err != nil {
-			mLog.Error(err, "failed to list object", "api version", crs.GetAPIVersion(), "kind", crs.GetKind())
+			klog.InfoS("Failed to list object", "apiVersion", crs.GetAPIVersion(), "kind", crs.GetKind(),
+				"err", err)
 			return nil, err
 		}
 		// pick the ones that is owned by the workload
 		for _, cr := range crs.Items {
 			for _, owner := range cr.GetOwnerReferences() {
 				if owner.UID == workload.GetUID() {
-					mLog.Info("Find a child resource we are looking for",
-						"APIVersion", cr.GetAPIVersion(), "Kind", cr.GetKind(),
-						"Name", cr.GetName(), "owner", owner.UID)
+					klog.InfoS("Find a child resource we are looking for", "child resource",
+						klog.KRef(cr.GetNamespace(), cr.GetName()), "apiVersion", cr.GetAPIVersion(),
+						"kind", cr.GetKind(), "owner", owner.UID)
 					or := cr // have to do a copy as the range variable is a reference and will change
 					childResources = append(childResources, &or)
 				}
@@ -634,10 +646,19 @@ func Object2Map(obj interface{}) (map[string]interface{}, error) {
 
 // Object2RawExtension converts an object to a rawExtension
 func Object2RawExtension(obj interface{}) runtime.RawExtension {
-	bts, _ := json.Marshal(obj)
+	bts := MustJSONMarshal(obj)
 	return runtime.RawExtension{
 		Raw: bts,
 	}
+}
+
+// MustJSONMarshal json-marshals an object into bytes. It panics on err.
+func MustJSONMarshal(obj interface{}) []byte {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
 
 // RawExtension2Map will convert rawExtension to map
@@ -762,9 +783,6 @@ func MergeMapOverrideWithDst(src, dst map[string]string) map[string]string {
 // ConvertComponentDef2WorkloadDef help convert a ComponentDefinition to WorkloadDefinition
 func ConvertComponentDef2WorkloadDef(dm discoverymapper.DiscoveryMapper, componentDef *v1beta1.ComponentDefinition,
 	workloadDef *v1beta1.WorkloadDefinition) error {
-	if len(componentDef.Spec.Workload.Type) > 1 {
-		return errors.New("No need to convert ComponentDefinition")
-	}
 	var reference common.DefinitionReference
 	reference, err := ConvertWorkloadGVK2Definition(dm, componentDef.Spec.Workload.Definition)
 	if err != nil {
