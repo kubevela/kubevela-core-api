@@ -17,6 +17,7 @@
 package v1beta1
 
 import (
+	xpv1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -71,6 +72,11 @@ type WorkflowStep struct {
 	Properties runtime.RawExtension `json:"properties,omitempty"`
 }
 
+// Workflow defines workflow steps and other attributes
+type Workflow struct {
+	Steps []WorkflowStep `json:"steps,omitempty"`
+}
+
 // ApplicationSpec is the spec of Application
 type ApplicationSpec struct {
 	Components []ApplicationComponent `json:"components"`
@@ -85,7 +91,7 @@ type ApplicationSpec struct {
 	// Workflow steps are executed in array order, and each step:
 	// - will have a context in annotation.
 	// - should mark "finish" phase in status.conditions.
-	Workflow []WorkflowStep `json:"workflow,omitempty"`
+	Workflow *Workflow `json:"workflow,omitempty"`
 
 	// TODO(wonderflow): we should have application level scopes supported here
 
@@ -122,6 +128,16 @@ type ApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Application `json:"items"`
+}
+
+// SetConditions set condition to application
+func (app *Application) SetConditions(c ...xpv1alpha1.Condition) {
+	app.Status.SetConditions(c...)
+}
+
+// GetCondition get condition by given condition type
+func (app *Application) GetCondition(t xpv1alpha1.ConditionType) xpv1alpha1.Condition {
+	return app.Status.GetCondition(t)
 }
 
 // GetComponent get the component from the application based on its workload type

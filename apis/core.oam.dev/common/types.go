@@ -213,11 +213,20 @@ type WorkflowStepStatus struct {
 	ResourceRef runtimev1alpha1.TypedReference `json:"resourceRef,omitempty"`
 }
 
+// WorkflowStatus record the status of workflow
+type WorkflowStatus struct {
+	Steps []WorkflowStepStatus `json:"steps,omitempty"`
+}
+
 // AppStatus defines the observed state of Application
 type AppStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	runtimev1alpha1.ConditionedStatus `json:",inline"`
+
+	// The generation observed by the application controller.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	Rollout AppRolloutStatus `json:"rollout,omitempty"`
 
@@ -233,7 +242,7 @@ type AppStatus struct {
 	ResourceTracker *runtimev1alpha1.TypedReference `json:"resourceTracker,omitempty"`
 
 	// Workflow record the status of workflow steps
-	Workflow []WorkflowStepStatus `json:"workflow,omitempty"`
+	Workflow *WorkflowStatus `json:"workflow,omitempty"`
 
 	// LatestRevision of the application configuration it generates
 	// +optional
