@@ -17,11 +17,11 @@
 package v1beta1
 
 import (
-	xpv1alpha1 "github.com/crossplane/crossplane-runtime/apis/core/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
 )
 
@@ -70,7 +70,27 @@ type WorkflowStep struct {
 
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Properties runtime.RawExtension `json:"properties,omitempty"`
+
+	Inputs StepInputs `json:"inputs,omitempty"`
+
+	Outputs StepOutputs `json:"outputs,omitempty"`
 }
+
+type inputItem struct {
+	ParameterKey string `json:"parameterKey"`
+	From         string `json:"from"`
+}
+
+// StepInputs defines variable input of WorkflowStep
+type StepInputs []inputItem
+
+type outputItem struct {
+	ExportKey string `json:"exportKey"`
+	Name      string `json:"name"`
+}
+
+// StepOutputs defines output variable of WorkflowStep
+type StepOutputs []outputItem
 
 // Workflow defines workflow steps and other attributes
 type Workflow struct {
@@ -131,12 +151,12 @@ type ApplicationList struct {
 }
 
 // SetConditions set condition to application
-func (app *Application) SetConditions(c ...xpv1alpha1.Condition) {
+func (app *Application) SetConditions(c ...condition.Condition) {
 	app.Status.SetConditions(c...)
 }
 
 // GetCondition get condition by given condition type
-func (app *Application) GetCondition(t xpv1alpha1.ConditionType) xpv1alpha1.Condition {
+func (app *Application) GetCondition(t condition.ConditionType) condition.Condition {
 	return app.Status.GetCondition(t)
 }
 
