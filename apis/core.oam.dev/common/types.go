@@ -167,6 +167,10 @@ const (
 	ApplicationRendering ApplicationPhase = "rendering"
 	// ApplicationRunningWorkflow means the app is running workflow
 	ApplicationRunningWorkflow ApplicationPhase = "runningWorkflow"
+	// ApplicationWorkflowSuspending means the app's workflow is suspending
+	ApplicationWorkflowSuspending ApplicationPhase = "workflowSuspending"
+	// ApplicationWorkflowTerminated means the app's workflow is terminated
+	ApplicationWorkflowTerminated ApplicationPhase = "workflowTerminated"
 	// ApplicationRunning means the app finished rendering and applied result to the cluster
 	ApplicationRunning ApplicationPhase = "running"
 	// ApplicationHealthChecking means the app finished rendering and applied result to the cluster, but still unhealthy
