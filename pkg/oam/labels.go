@@ -47,6 +47,8 @@ const (
 	LabelComponentDefinitionName = "componentdefinition.oam.dev/name"
 	// LabelTraitDefinitionName records the name of TraitDefinition
 	LabelTraitDefinitionName = "trait.oam.dev/name"
+	// LabelManageWorkloadTrait indicates if the trait will manage the lifecycle of the workload
+	LabelManageWorkloadTrait = "trait.oam.dev/manage-workload"
 	// LabelPolicyDefinitionName records the name of PolicyDefinition
 	LabelPolicyDefinitionName = "policydefinition.oam.dev/name"
 	// LabelWorkflowStepDefinitionName records the name of WorkflowStepDefinition
@@ -114,4 +116,7 @@ const (
 
 	// AnnotationDefinitionRevisionName is used to specify the name of DefinitionRevision in component/trait definition
 	AnnotationDefinitionRevisionName = "definitionrevision.oam.dev/name"
+
+	// AnnotationAddonsName records the name of initializer stored in configMap
+	AnnotationAddonsName = "addons.oam.dev/name"
 )

@@ -17,6 +17,7 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -31,8 +32,11 @@ const (
 	// OCMEngine represents Open-Cluster-Management multi-cluster management solution
 	OCMEngine ClusterManagementEngine = "ocm"
 
-	// LocalEngine represents single cluster ClusterManagerEngine
-	LocalEngine ClusterManagementEngine = "local"
+	// SingleClusterEngine represents single cluster ClusterManagerEngine
+	SingleClusterEngine ClusterManagementEngine = "single-cluster"
+
+	// ClusterGatewayEngine represents multi-cluster management solution with cluster-gateway
+	ClusterGatewayEngine ClusterManagementEngine = "cluster-gateway"
 )
 
 // EnvBindingPhase is a label for the condition of a EnvBinding at the current time
@@ -72,10 +76,16 @@ type EnvPlacement struct {
 	NamespaceSelector *NamespaceSelector      `json:"namespaceSelector,omitempty"`
 }
 
+// EnvSelector defines which components should this env contains
+type EnvSelector struct {
+	Components []string `json:"components,omitempty"`
+}
+
 // EnvConfig is the configuration for different environments.
 type EnvConfig struct {
 	Name      string       `json:"name"`
 	Placement EnvPlacement `json:"placement,omitempty"`
+	Selector  *EnvSelector `json:"selector,omitempty"`
 	Patch     EnvPatch     `json:"patch"`
 }
 
@@ -124,7 +134,10 @@ type EnvBindingStatus struct {
 
 	Phase EnvBindingPhase `json:"phase,omitempty"`
 
-	ClusterDecisions []ClusterDecision `json:"cluster_decisions,omitempty"`
+	ClusterDecisions []ClusterDecision `json:"clusterDecisions,omitempty"`
+
+	// ResourceTracker record the status of the ResourceTracker
+	ResourceTracker *corev1.ObjectReference `json:"resourceTracker,omitempty"`
 }
 
 // EnvBinding is the Schema for the EnvBinding API
