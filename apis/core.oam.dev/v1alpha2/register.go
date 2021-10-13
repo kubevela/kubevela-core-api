@@ -85,6 +85,14 @@ var (
 	ApplicationConfigurationGroupVersionKind = SchemeGroupVersion.WithKind(ApplicationConfigurationKind)
 )
 
+// ContainerizedWorkload type metadata.
+var (
+	ContainerizedWorkloadKind             = reflect.TypeOf(ContainerizedWorkload{}).Name()
+	ContainerizedWorkloadGroupKind        = schema.GroupKind{Group: Group, Kind: ContainerizedWorkloadKind}.String()
+	ContainerizedWorkloadKindAPIVersion   = ContainerizedWorkloadKind + "." + SchemeGroupVersion.String()
+	ContainerizedWorkloadGroupVersionKind = SchemeGroupVersion.WithKind(ContainerizedWorkloadKind)
+)
+
 // ManualScalerTrait type metadata.
 var (
 	ManualScalerTraitKind             = reflect.TypeOf(ManualScalerTrait{}).Name()
@@ -132,6 +140,7 @@ func init() {
 	SchemeBuilder.Register(&ScopeDefinition{}, &ScopeDefinitionList{})
 	SchemeBuilder.Register(&Component{}, &ComponentList{})
 	SchemeBuilder.Register(&ApplicationConfiguration{}, &ApplicationConfigurationList{})
+	SchemeBuilder.Register(&ContainerizedWorkload{}, &ContainerizedWorkloadList{})
 	SchemeBuilder.Register(&ManualScalerTrait{}, &ManualScalerTraitList{})
 	SchemeBuilder.Register(&HealthScope{}, &HealthScopeList{})
 	SchemeBuilder.Register(&Application{}, &ApplicationList{})
