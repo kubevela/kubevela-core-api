@@ -18,14 +18,15 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
+
+	"github.com/oam-dev/terraform-controller/api/v1beta1"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	types "github.com/oam-dev/terraform-controller/api/types/crossplane-runtime"
-
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
-
 	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
 )
 
@@ -114,11 +115,7 @@ type Terraform struct {
 	// +kubebuilder:validation:Enum:=hcl;json;remote
 	Type string `json:"type,omitempty"`
 
-	// Path is the sub-directory of remote git repository. It's valid when remote is set
-	Path string `json:"path,omitempty"`
-
-	// ProviderReference specifies the reference to Provider
-	ProviderReference *types.Reference `json:"providerRef,omitempty"`
+	v1beta1.BaseConfigurationSpec `json:",inline"`
 }
 
 // A WorkloadTypeDescriptor refer to a Workload Type
@@ -167,7 +164,7 @@ type Status struct {
 	HealthPolicy string `json:"healthPolicy,omitempty"`
 }
 
-// ApplicationPhase is a label for the condition of a application at the current time
+// ApplicationPhase is a label for the condition of an application at the current time
 type ApplicationPhase string
 
 const (
@@ -201,7 +198,9 @@ const (
 	WorkflowStateTerminated WorkflowState = "terminated"
 	// WorkflowStateSuspended means workflow is suspended manually, and it can be resumed.
 	WorkflowStateSuspended WorkflowState = "suspended"
-	// WorkflowStateFinished means workflow is running successfully, all steps finished.
+	// WorkflowStateSucceeded means workflow is running successfully, all steps finished.
+	WorkflowStateSucceeded WorkflowState = "Succeeded"
+	// WorkflowStateFinished means workflow is end.
 	WorkflowStateFinished WorkflowState = "finished"
 	// WorkflowStateExecuting means workflow is still running or waiting some steps.
 	WorkflowStateExecuting WorkflowState = "executing"
@@ -253,6 +252,10 @@ type WorkflowStepStatus struct {
 	// A brief CamelCase message indicating details about why the workflowStep is in this state.
 	Reason   string          `json:"reason,omitempty"`
 	SubSteps *SubStepsStatus `json:"subSteps,omitempty"`
+	// FirstExecuteTime is the first time this step execution.
+	FirstExecuteTime metav1.Time `json:"firstExecuteTime,omitempty"`
+	// LastExecuteTime is the last time this step execution.
+	LastExecuteTime metav1.Time `json:"lastExecuteTime,omitempty"`
 }
 
 // WorkflowSubStepStatus record the status of a workflow step
@@ -277,7 +280,7 @@ type AppStatus struct {
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	Rollout AppRolloutStatus `json:"rollout,omitempty"`
+	Rollout *AppRolloutStatus `json:"rollout,omitempty"`
 
 	Phase ApplicationPhase `json:"status,omitempty"`
 
@@ -299,6 +302,17 @@ type AppStatus struct {
 
 	// AppliedResources record the resources that the  workflow step apply.
 	AppliedResources []ClusterObjectReference `json:"appliedResources,omitempty"`
+
+	// PolicyStatus records the status of policy
+	PolicyStatus []PolicyStatus `json:"policy,omitempty"`
+}
+
+// PolicyStatus records the status of policy
+type PolicyStatus struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Status *runtime.RawExtension `json:"status,omitempty"`
 }
 
 // WorkflowStatus record the status of workflow
@@ -308,9 +322,12 @@ type WorkflowStatus struct {
 
 	Suspend    bool `json:"suspend"`
 	Terminated bool `json:"terminated"`
+	Finished   bool `json:"finished"`
 
 	ContextBackend *corev1.ObjectReference `json:"contextBackend,omitempty"`
 	Steps          []WorkflowStepStatus    `json:"steps,omitempty"`
+
+	StartTime metav1.Time `json:"startTime,omitempty"`
 }
 
 // SubStepsStatus record the status of workflow steps.
@@ -463,6 +480,11 @@ type ClusterObjectReference struct {
 	corev1.ObjectReference `json:",inline"`
 }
 
+// Equal check if two references are equal
+func (in ClusterObjectReference) Equal(r ClusterObjectReference) bool {
+	return in.APIVersion == r.APIVersion && in.Kind == r.Kind && in.Name == r.Name && in.Namespace == r.Namespace && in.UID == r.UID && in.Creator == r.Creator && in.Cluster == r.Cluster
+}
+
 // RawExtensionPointer is the pointer of raw extension
 type RawExtensionPointer struct {
 	RawExtension *runtime.RawExtension
@@ -487,4 +509,49 @@ func (re RawExtensionPointer) MarshalJSON() ([]byte, error) {
 	}
 	// TODO: Check whether ContentType is actually JSON before returning it.
 	return re.RawExtension.Raw, nil
+}
+
+// ApplicationConditionType is a valid value for ApplicationCondition.Type
+type ApplicationConditionType int
+
+const (
+	// ParsedCondition indicates whether the parsing  is successful.
+	ParsedCondition ApplicationConditionType = iota
+	// RevisionCondition indicates whether the generated revision is successful.
+	RevisionCondition
+	// PolicyCondition indicates whether policy processing is successful.
+	PolicyCondition
+	// RenderCondition indicates whether render processing is successful.
+	RenderCondition
+	// WorkflowCondition indicates whether workflow processing is successful.
+	WorkflowCondition
+	// RolloutCondition indicates whether rollout processing is successful.
+	RolloutCondition
+	// ReadyCondition indicates whether whole application processing is successful.
+	ReadyCondition
+)
+
+var conditions = map[ApplicationConditionType]string{
+	ParsedCondition:   "Parsed",
+	RevisionCondition: "Revision",
+	PolicyCondition:   "Policy",
+	RenderCondition:   "Render",
+	WorkflowCondition: "Workflow",
+	RolloutCondition:  "Rollout",
+	ReadyCondition:    "Ready",
+}
+
+// String returns the string corresponding to the condition type.
+func (ct ApplicationConditionType) String() string {
+	return conditions[ct]
+}
+
+// ParseApplicationConditionType parse ApplicationCondition Type.
+func ParseApplicationConditionType(s string) (ApplicationConditionType, error) {
+	for k, v := range conditions {
+		if v == s {
+			return k, nil
+		}
+	}
+	return -1, errors.New("unknown condition type")
 }
