@@ -7,7 +7,7 @@ require (
 	github.com/crossplane/crossplane-runtime v0.14.1-0.20210722005935-0b469fcc77cd
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-cmp v0.5.5
-	github.com/oam-dev/terraform-controller v0.2.1
+	github.com/oam-dev/terraform-controller v0.2.10
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.14.0
 	github.com/pkg/errors v0.9.1
