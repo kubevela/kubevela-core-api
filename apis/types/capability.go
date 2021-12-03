@@ -19,11 +19,12 @@ package types
 import (
 	"encoding/json"
 
-	"cuelang.org/go/cue"
-	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
+
+	"cuelang.org/go/cue"
+	"github.com/spf13/pflag"
 )
 
 // Source record the source of Capability

@@ -37,6 +37,8 @@ type Interface interface {
 	ComponentDefinitions() ComponentDefinitionInformer
 	// DefinitionRevisions returns a DefinitionRevisionInformer.
 	DefinitionRevisions() DefinitionRevisionInformer
+	// Initializers returns a InitializerInformer.
+	Initializers() InitializerInformer
 	// PolicyDefinitions returns a PolicyDefinitionInformer.
 	PolicyDefinitions() PolicyDefinitionInformer
 	// ResourceTrackers returns a ResourceTrackerInformer.
@@ -95,6 +97,11 @@ func (v *version) ComponentDefinitions() ComponentDefinitionInformer {
 // DefinitionRevisions returns a DefinitionRevisionInformer.
 func (v *version) DefinitionRevisions() DefinitionRevisionInformer {
 	return &definitionRevisionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// Initializers returns a InitializerInformer.
+func (v *version) Initializers() InitializerInformer {
+	return &initializerInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // PolicyDefinitions returns a PolicyDefinitionInformer.

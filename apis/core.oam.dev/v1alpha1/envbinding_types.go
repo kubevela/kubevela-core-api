@@ -17,65 +17,48 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 )
+
+// ClusterManagementEngine represents a multi-cluster management solution
+type ClusterManagementEngine string
 
 const (
-	// EnvBindingPolicyType refers to the type of EnvBinding
-	EnvBindingPolicyType = "env-binding"
+	// OCMEngine represents Open-Cluster-Management multi-cluster management solution
+	OCMEngine ClusterManagementEngine = "ocm"
 
-	// GarbageCollectPolicyType refers to the type of garbage-collect
-	GarbageCollectPolicyType = "garbage-collect"
+	// SingleClusterEngine represents single cluster ClusterManagerEngine
+	SingleClusterEngine ClusterManagementEngine = "single-cluster"
+
+	// ClusterGatewayEngine represents multi-cluster management solution with cluster-gateway
+	ClusterGatewayEngine ClusterManagementEngine = "cluster-gateway"
 )
 
-// EnvTraitPatch is the patch to trait
-type EnvTraitPatch struct {
-	Type       string                `json:"type"`
-	Properties *runtime.RawExtension `json:"properties,omitempty"`
-	Disable    bool                  `json:"disable,omitempty"`
-}
+// EnvBindingPhase is a label for the condition of a EnvBinding at the current time
+type EnvBindingPhase string
 
-// ToApplicationTrait convert EnvTraitPatch into ApplicationTrait
-func (in *EnvTraitPatch) ToApplicationTrait() *common.ApplicationTrait {
-	out := &common.ApplicationTrait{Type: in.Type}
-	if in.Properties != nil {
-		out.Properties = in.Properties.DeepCopy()
-	}
-	return out
-}
+const (
+	// EnvBindingPrepare means EnvBinding is preparing the pre-work for cluster scheduling
+	EnvBindingPrepare EnvBindingPhase = "preparing"
 
-// EnvComponentPatch is the patch to component
-type EnvComponentPatch struct {
-	Name       string                `json:"name"`
-	Type       string                `json:"type"`
-	Properties *runtime.RawExtension `json:"properties,omitempty"`
-	Traits     []EnvTraitPatch       `json:"traits,omitempty"`
-}
+	// EnvBindingRendering means EnvBinding is rendering the apps in different envs
+	EnvBindingRendering EnvBindingPhase = "rendering"
 
-// ToApplicationComponent convert EnvComponentPatch into ApplicationComponent
-func (in *EnvComponentPatch) ToApplicationComponent() *common.ApplicationComponent {
-	out := &common.ApplicationComponent{
-		Name: in.Name,
-		Type: in.Type,
-	}
-	if in.Properties != nil {
-		out.Properties = in.Properties.DeepCopy()
-	}
-	if in.Traits != nil {
-		for _, trait := range in.Traits {
-			if !trait.Disable {
-				out.Traits = append(out.Traits, *trait.ToApplicationTrait())
-			}
-		}
-	}
-	return out
-}
+	// EnvBindingScheduling means EnvBinding is deciding which cluster the apps is scheduled to.
+	EnvBindingScheduling EnvBindingPhase = "scheduling"
+
+	// EnvBindingFinished means EnvBinding finished env binding
+	EnvBindingFinished EnvBindingPhase = "finished"
+)
 
 // EnvPatch specify the parameter configuration for different environments
 type EnvPatch struct {
-	Components []EnvComponentPatch `json:"components,omitempty"`
+	Components []common.ApplicationComponent `json:"components"`
 }
 
 // NamespaceSelector defines the rules to select a Namespace resource.
@@ -103,34 +86,90 @@ type EnvConfig struct {
 	Name      string       `json:"name"`
 	Placement EnvPlacement `json:"placement,omitempty"`
 	Selector  *EnvSelector `json:"selector,omitempty"`
-	Patch     EnvPatch     `json:"patch,omitempty"`
+	Patch     EnvPatch     `json:"patch"`
 }
 
-// EnvBindingSpec defines a list of envs
+// AppTemplate represents a application to be configured.
+type AppTemplate struct {
+	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:pruning:PreserveUnknownFields
+	runtime.RawExtension `json:",inline"`
+}
+
+// ClusterDecision recorded the mapping of environment and cluster
+type ClusterDecision struct {
+	Env       string `json:"env"`
+	Cluster   string `json:"cluster,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// A ConfigMapReference is a reference to a configMap in an arbitrary namespace.
+type ConfigMapReference struct {
+	// Name of the secret.
+	Name string `json:"name"`
+
+	// Namespace of the secret.
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// A EnvBindingSpec defines the desired state of a EnvBinding.
 type EnvBindingSpec struct {
+	Engine ClusterManagementEngine `json:"engine,omitempty"`
+
+	// AppTemplate indicates the application template.
+	AppTemplate AppTemplate `json:"appTemplate"`
+
 	Envs []EnvConfig `json:"envs"`
+
+	// OutputResourcesTo specifies the namespace and name of a ConfigMap
+	// which store the resources rendered after differentiated configuration
+	// +optional
+	OutputResourcesTo *ConfigMapReference `json:"outputResourcesTo,omitempty"`
 }
 
-// PlacementDecision describes the placement of one application instance
-type PlacementDecision struct {
-	Cluster   string `json:"cluster"`
-	Namespace string `json:"namespace"`
-}
-
-// EnvStatus records the status of one env
-type EnvStatus struct {
-	Env        string              `json:"env"`
-	Placements []PlacementDecision `json:"placements"`
-}
-
-// ClusterConnection records the connection with clusters and the last active app revision when they are active (still be used)
-type ClusterConnection struct {
-	ClusterName        string `json:"clusterName"`
-	LastActiveRevision string `json:"lastActiveRevision"`
-}
-
-// EnvBindingStatus records the status of all env
+// A EnvBindingStatus is the status of EnvBinding
 type EnvBindingStatus struct {
-	Envs               []EnvStatus         `json:"envs"`
-	ClusterConnections []ClusterConnection `json:"clusterConnections"`
+	// ConditionedStatus reflects the observed status of a resource
+	condition.ConditionedStatus `json:",inline"`
+
+	Phase EnvBindingPhase `json:"phase,omitempty"`
+
+	ClusterDecisions []ClusterDecision `json:"clusterDecisions,omitempty"`
+
+	// ResourceTracker record the status of the ResourceTracker
+	ResourceTracker *corev1.ObjectReference `json:"resourceTracker,omitempty"`
+}
+
+// EnvBinding is the Schema for the EnvBinding API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=envbind
+// +kubebuilder:printcolumn:name="ENGINE",type=string,JSONPath=`.spec.engine`
+// +kubebuilder:printcolumn:name="PHASE",type=string,JSONPath=`.status.phase`
+// +kubebuilder:printcolumn:name="AGE",type=date,JSONPath=".metadata.creationTimestamp"
+type EnvBinding struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   EnvBindingSpec   `json:"spec,omitempty"`
+	Status EnvBindingStatus `json:"status,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+
+// EnvBindingList contains a list of EnvBinding.
+type EnvBindingList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []EnvBinding `json:"items"`
+}
+
+// SetConditions set condition for EnvBinding
+func (e *EnvBinding) SetConditions(c ...condition.Condition) {
+	e.Status.SetConditions(c...)
+}
+
+// GetCondition gets condition from EnvBinding
+func (e *EnvBinding) GetCondition(conditionType condition.ConditionType) condition.Condition {
+	return e.Status.GetCondition(conditionType)
 }

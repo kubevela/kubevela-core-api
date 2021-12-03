@@ -32,6 +32,7 @@ type CoreV1beta1Interface interface {
 	ClustersGetter
 	ComponentDefinitionsGetter
 	DefinitionRevisionsGetter
+	InitializersGetter
 	PolicyDefinitionsGetter
 	ResourceTrackersGetter
 	ScopeDefinitionsGetter
@@ -71,6 +72,10 @@ func (c *CoreV1beta1Client) ComponentDefinitions(namespace string) ComponentDefi
 
 func (c *CoreV1beta1Client) DefinitionRevisions(namespace string) DefinitionRevisionInterface {
 	return newDefinitionRevisions(c, namespace)
+}
+
+func (c *CoreV1beta1Client) Initializers(namespace string) InitializerInterface {
+	return newInitializers(c, namespace)
 }
 
 func (c *CoreV1beta1Client) PolicyDefinitions(namespace string) PolicyDefinitionInterface {

@@ -17,6 +17,8 @@
 package v1alpha1
 
 import (
+	"reflect"
+
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
@@ -35,5 +37,14 @@ var (
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
 
+// EnvBinding type metadata.
+var (
+	EnvBindingKind            = reflect.TypeOf(EnvBinding{}).Name()
+	EnvBindingGroupKind       = schema.GroupKind{Group: Group, Kind: EnvBindingKind}.String()
+	EnvBindingKindAPIVersion  = EnvBindingKind + "." + SchemeGroupVersion.String()
+	EnvBindingKindVersionKind = SchemeGroupVersion.WithKind(EnvBindingKind)
+)
+
 func init() {
+	SchemeBuilder.Register(&EnvBinding{}, &EnvBindingList{})
 }

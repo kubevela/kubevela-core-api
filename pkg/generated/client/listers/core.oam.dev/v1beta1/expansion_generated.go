@@ -73,6 +73,14 @@ type DefinitionRevisionListerExpansion interface{}
 // DefinitionRevisionNamespaceLister.
 type DefinitionRevisionNamespaceListerExpansion interface{}
 
+// InitializerListerExpansion allows custom methods to be added to
+// InitializerLister.
+type InitializerListerExpansion interface{}
+
+// InitializerNamespaceListerExpansion allows custom methods to be added to
+// InitializerNamespaceLister.
+type InitializerNamespaceListerExpansion interface{}
+
 // PolicyDefinitionListerExpansion allows custom methods to be added to
 // PolicyDefinitionLister.
 type PolicyDefinitionListerExpansion interface{}

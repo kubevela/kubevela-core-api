@@ -55,6 +55,10 @@ func (c *FakeCoreV1beta1) DefinitionRevisions(namespace string) v1beta1.Definiti
 	return &FakeDefinitionRevisions{c, namespace}
 }
 
+func (c *FakeCoreV1beta1) Initializers(namespace string) v1beta1.InitializerInterface {
+	return &FakeInitializers{c, namespace}
+}
+
 func (c *FakeCoreV1beta1) PolicyDefinitions(namespace string) v1beta1.PolicyDefinitionInterface {
 	return &FakePolicyDefinitions{c, namespace}
 }
