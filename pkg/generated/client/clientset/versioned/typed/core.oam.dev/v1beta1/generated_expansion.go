@@ -31,8 +31,6 @@ type ComponentDefinitionExpansion interface{}
 
 type DefinitionRevisionExpansion interface{}
 
-type InitializerExpansion interface{}
-
 type PolicyDefinitionExpansion interface{}
 
 type ResourceTrackerExpansion interface{}

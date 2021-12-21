@@ -18,13 +18,14 @@ package types
 
 // reason for Application
 const (
-	ReasonParsed      = "Parsed"
-	ReasonRendered    = "Rendered"
-	ReasonRevisoned   = "Revisioned"
-	ReasonApplied     = "Applied"
-	ReasonHealthCheck = "HealthChecked"
-	ReasonDeployed    = "Deployed"
-	ReasonRollout     = "Rollout"
+	ReasonParsed          = "Parsed"
+	ReasonRendered        = "Rendered"
+	ReasonPolicyGenerated = "PolicyGenerated"
+	ReasonRevisoned       = "Revisioned"
+	ReasonApplied         = "Applied"
+	ReasonHealthCheck     = "HealthChecked"
+	ReasonDeployed        = "Deployed"
+	ReasonRollout         = "Rollout"
 
 	ReasonFailedParse       = "FailedParse"
 	ReasonFailedRender      = "FailedRender"
@@ -32,6 +33,7 @@ const (
 	ReasonFailedWorkflow    = "FailedWorkflow"
 	ReasonFailedApply       = "FailedApply"
 	ReasonFailedHealthCheck = "FailedHealthCheck"
+	ReasonFailedStateKeep   = "FailedStateKeep"
 	ReasonFailedGC          = "FailedGC"
 	ReasonFailedRollout     = "FailedRollout"
 )
@@ -40,6 +42,7 @@ const (
 const (
 	MessageParsed           = "Parsed successfully"
 	MessageRendered         = "Rendered successfully"
+	MessagePolicyGenerated  = "Policy generated successfully"
 	MessageRevisioned       = "Revisioned successfully"
 	MessageApplied          = "Applied successfully"
 	MessageWorkflowFinished = "Workflow finished"

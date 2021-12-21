@@ -18,13 +18,18 @@ package common
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/oam-dev/terraform-controller/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
+	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 )
 
 // Kube defines the encapsulation in raw Kubernetes resource format
@@ -164,7 +169,7 @@ type Status struct {
 	HealthPolicy string `json:"healthPolicy,omitempty"`
 }
 
-// ApplicationPhase is a label for the condition of a application at the current time
+// ApplicationPhase is a label for the condition of an application at the current time
 type ApplicationPhase string
 
 const (
@@ -188,17 +193,23 @@ const (
 	ApplicationRunning ApplicationPhase = "running"
 	// ApplicationUnhealthy means the app finished rendering and applied result to the cluster, but still unhealthy
 	ApplicationUnhealthy ApplicationPhase = "unhealthy"
+	// ApplicationDeleting means application is being deleted
+	ApplicationDeleting ApplicationPhase = "deleting"
 )
 
 // WorkflowState is a string that mark the workflow state
 type WorkflowState string
 
 const (
+	// WorkflowStateInitializing means the workflow is in initial state
+	WorkflowStateInitializing WorkflowState = "initializing"
 	// WorkflowStateTerminated means workflow is terminated manually, and it won't be started unless the spec changed.
 	WorkflowStateTerminated WorkflowState = "terminated"
 	// WorkflowStateSuspended means workflow is suspended manually, and it can be resumed.
 	WorkflowStateSuspended WorkflowState = "suspended"
-	// WorkflowStateFinished means workflow is running successfully, all steps finished.
+	// WorkflowStateSucceeded means workflow is running successfully, all steps finished.
+	WorkflowStateSucceeded WorkflowState = "Succeeded"
+	// WorkflowStateFinished means workflow is end.
 	WorkflowStateFinished WorkflowState = "finished"
 	// WorkflowStateExecuting means workflow is still running or waiting some steps.
 	WorkflowStateExecuting WorkflowState = "executing"
@@ -250,6 +261,10 @@ type WorkflowStepStatus struct {
 	// A brief CamelCase message indicating details about why the workflowStep is in this state.
 	Reason   string          `json:"reason,omitempty"`
 	SubSteps *SubStepsStatus `json:"subSteps,omitempty"`
+	// FirstExecuteTime is the first time this step execution.
+	FirstExecuteTime metav1.Time `json:"firstExecuteTime,omitempty"`
+	// LastExecuteTime is the last time this step execution.
+	LastExecuteTime metav1.Time `json:"lastExecuteTime,omitempty"`
 }
 
 // WorkflowSubStepStatus record the status of a workflow step
@@ -274,7 +289,7 @@ type AppStatus struct {
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	Rollout AppRolloutStatus `json:"rollout,omitempty"`
+	Rollout *AppRolloutStatus `json:"rollout,omitempty"`
 
 	Phase ApplicationPhase `json:"status,omitempty"`
 
@@ -284,6 +299,7 @@ type AppStatus struct {
 	// Services record the status of the application services
 	Services []ApplicationComponentStatus `json:"services,omitempty"`
 
+	// Deprecated
 	// ResourceTracker record the status of the ResourceTracker
 	ResourceTracker *corev1.ObjectReference `json:"resourceTracker,omitempty"`
 
@@ -296,18 +312,33 @@ type AppStatus struct {
 
 	// AppliedResources record the resources that the  workflow step apply.
 	AppliedResources []ClusterObjectReference `json:"appliedResources,omitempty"`
+
+	// PolicyStatus records the status of policy
+	PolicyStatus []PolicyStatus `json:"policy,omitempty"`
+}
+
+// PolicyStatus records the status of policy
+type PolicyStatus struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Status *runtime.RawExtension `json:"status,omitempty"`
 }
 
 // WorkflowStatus record the status of workflow
 type WorkflowStatus struct {
 	AppRevision string       `json:"appRevision,omitempty"`
 	Mode        WorkflowMode `json:"mode"`
+	Message     string       `json:"message,omitempty"`
 
 	Suspend    bool `json:"suspend"`
 	Terminated bool `json:"terminated"`
+	Finished   bool `json:"finished"`
 
 	ContextBackend *corev1.ObjectReference `json:"contextBackend,omitempty"`
 	Steps          []WorkflowStepStatus    `json:"steps,omitempty"`
+
+	StartTime metav1.Time `json:"startTime,omitempty"`
 }
 
 // SubStepsStatus record the status of workflow steps.
@@ -323,7 +354,7 @@ type WorkflowStepPhase string
 const (
 	// WorkflowStepPhaseSucceeded will make the controller run the next step.
 	WorkflowStepPhaseSucceeded WorkflowStepPhase = "succeeded"
-	// WorkflowStepPhaseFailed will make the controller stop the workflow and report error in `message`.
+	// WorkflowStepPhaseFailed will report error in `message`.
 	WorkflowStepPhaseFailed WorkflowStepPhase = "failed"
 	// WorkflowStepPhaseStopped will make the controller stop the workflow.
 	WorkflowStepPhaseStopped WorkflowStepPhase = "stopped"
@@ -453,11 +484,58 @@ const (
 	WorkflowResourceCreator ResourceCreatorRole = "workflow"
 )
 
+// OAMObjectReference defines the object reference for an oam resource
+type OAMObjectReference struct {
+	Component string `json:"component,omitempty"`
+	Trait     string `json:"trait,omitempty"`
+	Env       string `json:"env,omitempty"`
+}
+
+// Equal check if two references are equal
+func (in OAMObjectReference) Equal(r OAMObjectReference) bool {
+	return in.Component == r.Component && in.Trait == r.Trait && in.Env == r.Env
+}
+
+// AddLabelsToObject add labels to object if properties are not empty
+func (in OAMObjectReference) AddLabelsToObject(obj client.Object) {
+	labels := obj.GetLabels()
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	if in.Component != "" {
+		labels[oam.LabelAppComponent] = in.Component
+	}
+	if in.Trait != "" {
+		labels[oam.TraitTypeLabel] = in.Trait
+	}
+	if in.Env != "" {
+		labels[oam.LabelAppEnv] = in.Env
+	}
+	obj.SetLabels(labels)
+}
+
+// NewOAMObjectReferenceFromObject create OAMObjectReference from object
+func NewOAMObjectReferenceFromObject(obj client.Object) OAMObjectReference {
+	if labels := obj.GetLabels(); labels != nil {
+		return OAMObjectReference{
+			Component: labels[oam.LabelAppComponent],
+			Trait:     labels[oam.TraitTypeLabel],
+			Env:       labels[oam.LabelAppEnv],
+		}
+	}
+	return OAMObjectReference{}
+}
+
 // ClusterObjectReference defines the object reference with cluster.
 type ClusterObjectReference struct {
 	Cluster                string              `json:"cluster,omitempty"`
 	Creator                ResourceCreatorRole `json:"creator,omitempty"`
 	corev1.ObjectReference `json:",inline"`
+}
+
+// Equal check if two references are equal
+func (in ClusterObjectReference) Equal(r ClusterObjectReference) bool {
+	return in.APIVersion == r.APIVersion && in.Kind == r.Kind && in.Name == r.Name && in.Namespace == r.Namespace && in.UID == r.UID && in.Creator == r.Creator && in.Cluster == r.Cluster
 }
 
 // RawExtensionPointer is the pointer of raw extension
@@ -484,4 +562,49 @@ func (re RawExtensionPointer) MarshalJSON() ([]byte, error) {
 	}
 	// TODO: Check whether ContentType is actually JSON before returning it.
 	return re.RawExtension.Raw, nil
+}
+
+// ApplicationConditionType is a valid value for ApplicationCondition.Type
+type ApplicationConditionType int
+
+const (
+	// ParsedCondition indicates whether the parsing  is successful.
+	ParsedCondition ApplicationConditionType = iota
+	// RevisionCondition indicates whether the generated revision is successful.
+	RevisionCondition
+	// PolicyCondition indicates whether policy processing is successful.
+	PolicyCondition
+	// RenderCondition indicates whether render processing is successful.
+	RenderCondition
+	// WorkflowCondition indicates whether workflow processing is successful.
+	WorkflowCondition
+	// RolloutCondition indicates whether rollout processing is successful.
+	RolloutCondition
+	// ReadyCondition indicates whether whole application processing is successful.
+	ReadyCondition
+)
+
+var conditions = map[ApplicationConditionType]string{
+	ParsedCondition:   "Parsed",
+	RevisionCondition: "Revision",
+	PolicyCondition:   "Policy",
+	RenderCondition:   "Render",
+	WorkflowCondition: "Workflow",
+	RolloutCondition:  "Rollout",
+	ReadyCondition:    "Ready",
+}
+
+// String returns the string corresponding to the condition type.
+func (ct ApplicationConditionType) String() string {
+	return conditions[ct]
+}
+
+// ParseApplicationConditionType parse ApplicationCondition Type.
+func ParseApplicationConditionType(s string) (ApplicationConditionType, error) {
+	for k, v := range conditions {
+		if v == s {
+			return k, nil
+		}
+	}
+	return -1, errors.New("unknown condition type")
 }

@@ -19,12 +19,11 @@ package types
 import (
 	"encoding/json"
 
+	"cuelang.org/go/cue"
+	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
-
-	"cuelang.org/go/cue"
-	"github.com/spf13/pflag"
 )
 
 // Source record the source of Capability
@@ -79,6 +78,8 @@ const CapabilityConfigMapNamePrefix = "schema-"
 const (
 	// OpenapiV3JSONSchema is the key to store OpenAPI v3 JSON schema in ConfigMap
 	OpenapiV3JSONSchema string = "openapi-v3-json-schema"
+	// UISchema is the key to store ui custom schema
+	UISchema string = "ui-schema"
 )
 
 // CapabilityCategory defines the category of a capability
