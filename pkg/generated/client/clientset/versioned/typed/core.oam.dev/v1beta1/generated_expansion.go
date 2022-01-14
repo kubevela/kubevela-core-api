@@ -17,15 +17,9 @@ limitations under the License.
 
 package v1beta1
 
-type AppDeploymentExpansion interface{}
-
-type AppRolloutExpansion interface{}
-
 type ApplicationExpansion interface{}
 
 type ApplicationRevisionExpansion interface{}
-
-type ClusterExpansion interface{}
 
 type ComponentDefinitionExpansion interface{}
 

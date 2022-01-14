@@ -48,6 +48,14 @@ const (
 	LabelDefinitionDeprecated = "custom.definition.oam.dev/deprecated"
 	// LabelDefinitionHidden is the label which describe whether the capability is hidden by UI
 	LabelDefinitionHidden = "custom.definition.oam.dev/ui-hidden"
+	// LabelNodeRoleGateway gateway role of node
+	LabelNodeRoleGateway = "node-role.kubernetes.io/gateway"
+	// LabelNodeRoleWorker worker role of node
+	LabelNodeRoleWorker = "node-role.kubernetes.io/worker"
+	// AnnoIngressControllerHTTPSPort define ingress controller listen port for https
+	AnnoIngressControllerHTTPSPort = "ingress.controller/https-port"
+	// AnnoIngressControllerHTTPPort define ingress controller listen port for http
+	AnnoIngressControllerHTTPPort = "ingress.controller/http-port"
 )
 
 const (
@@ -70,20 +78,27 @@ type EnvMeta struct {
 const (
 	// TagCommandType used for tag cli category
 	TagCommandType = "commandType"
+
+	// TagCommandOrder defines the order
+	TagCommandOrder = "commandOrder"
+
 	// TypeStart defines one category
 	TypeStart = "Getting Started"
+
 	// TypeApp defines one category
 	TypeApp = "Managing Applications"
-	// TypeCap defines one category
-	TypeCap = "Managing Capabilities"
+
+	// TypeCD defines workflow Management operations
+	TypeCD = "Continuous Delivery"
+
+	// TypeExtension defines one category
+	TypeExtension = "Managing Extension"
+
 	// TypeSystem defines one category
-	TypeSystem = "System"
-	// TypeDefinition defines one category
-	TypeDefinition = "Managing Definitions"
+	TypeSystem = "Others"
+
 	// TypePlugin defines one category used in Kubectl Plugin
 	TypePlugin = "Plugin Command"
-	// TypeUISchema defines one category
-	TypeUISchema = "Managing UISchema"
 )
 
 // LabelArg is the argument `label` of a definition

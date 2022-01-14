@@ -52,16 +52,10 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=core.oam.dev, Version=v1beta1
-	case v1beta1.SchemeGroupVersion.WithResource("appdeployments"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().AppDeployments().Informer()}, nil
-	case v1beta1.SchemeGroupVersion.WithResource("approllouts"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().AppRollouts().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("applications"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().Applications().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("applicationrevisions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().ApplicationRevisions().Informer()}, nil
-	case v1beta1.SchemeGroupVersion.WithResource("clusters"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().Clusters().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("componentdefinitions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().ComponentDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("definitionrevisions"):

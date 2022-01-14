@@ -25,11 +25,8 @@ import (
 
 type CoreV1beta1Interface interface {
 	RESTClient() rest.Interface
-	AppDeploymentsGetter
-	AppRolloutsGetter
 	ApplicationsGetter
 	ApplicationRevisionsGetter
-	ClustersGetter
 	ComponentDefinitionsGetter
 	DefinitionRevisionsGetter
 	PolicyDefinitionsGetter
@@ -45,24 +42,12 @@ type CoreV1beta1Client struct {
 	restClient rest.Interface
 }
 
-func (c *CoreV1beta1Client) AppDeployments(namespace string) AppDeploymentInterface {
-	return newAppDeployments(c, namespace)
-}
-
-func (c *CoreV1beta1Client) AppRollouts(namespace string) AppRolloutInterface {
-	return newAppRollouts(c, namespace)
-}
-
 func (c *CoreV1beta1Client) Applications(namespace string) ApplicationInterface {
 	return newApplications(c, namespace)
 }
 
 func (c *CoreV1beta1Client) ApplicationRevisions(namespace string) ApplicationRevisionInterface {
 	return newApplicationRevisions(c, namespace)
-}
-
-func (c *CoreV1beta1Client) Clusters(namespace string) ClusterInterface {
-	return newClusters(c, namespace)
 }
 
 func (c *CoreV1beta1Client) ComponentDefinitions(namespace string) ComponentDefinitionInterface {

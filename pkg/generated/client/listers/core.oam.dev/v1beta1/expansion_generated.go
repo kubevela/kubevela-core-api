@@ -17,22 +17,6 @@ limitations under the License.
 
 package v1beta1
 
-// AppDeploymentListerExpansion allows custom methods to be added to
-// AppDeploymentLister.
-type AppDeploymentListerExpansion interface{}
-
-// AppDeploymentNamespaceListerExpansion allows custom methods to be added to
-// AppDeploymentNamespaceLister.
-type AppDeploymentNamespaceListerExpansion interface{}
-
-// AppRolloutListerExpansion allows custom methods to be added to
-// AppRolloutLister.
-type AppRolloutListerExpansion interface{}
-
-// AppRolloutNamespaceListerExpansion allows custom methods to be added to
-// AppRolloutNamespaceLister.
-type AppRolloutNamespaceListerExpansion interface{}
-
 // ApplicationListerExpansion allows custom methods to be added to
 // ApplicationLister.
 type ApplicationListerExpansion interface{}
@@ -48,14 +32,6 @@ type ApplicationRevisionListerExpansion interface{}
 // ApplicationRevisionNamespaceListerExpansion allows custom methods to be added to
 // ApplicationRevisionNamespaceLister.
 type ApplicationRevisionNamespaceListerExpansion interface{}
-
-// ClusterListerExpansion allows custom methods to be added to
-// ClusterLister.
-type ClusterListerExpansion interface{}
-
-// ClusterNamespaceListerExpansion allows custom methods to be added to
-// ClusterNamespaceLister.
-type ClusterNamespaceListerExpansion interface{}
 
 // ComponentDefinitionListerExpansion allows custom methods to be added to
 // ComponentDefinitionLister.

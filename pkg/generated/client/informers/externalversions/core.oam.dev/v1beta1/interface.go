@@ -23,16 +23,10 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// AppDeployments returns a AppDeploymentInformer.
-	AppDeployments() AppDeploymentInformer
-	// AppRollouts returns a AppRolloutInformer.
-	AppRollouts() AppRolloutInformer
 	// Applications returns a ApplicationInformer.
 	Applications() ApplicationInformer
 	// ApplicationRevisions returns a ApplicationRevisionInformer.
 	ApplicationRevisions() ApplicationRevisionInformer
-	// Clusters returns a ClusterInformer.
-	Clusters() ClusterInformer
 	// ComponentDefinitions returns a ComponentDefinitionInformer.
 	ComponentDefinitions() ComponentDefinitionInformer
 	// DefinitionRevisions returns a DefinitionRevisionInformer.
@@ -62,16 +56,6 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// AppDeployments returns a AppDeploymentInformer.
-func (v *version) AppDeployments() AppDeploymentInformer {
-	return &appDeploymentInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
-}
-
-// AppRollouts returns a AppRolloutInformer.
-func (v *version) AppRollouts() AppRolloutInformer {
-	return &appRolloutInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
-}
-
 // Applications returns a ApplicationInformer.
 func (v *version) Applications() ApplicationInformer {
 	return &applicationInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
@@ -80,11 +64,6 @@ func (v *version) Applications() ApplicationInformer {
 // ApplicationRevisions returns a ApplicationRevisionInformer.
 func (v *version) ApplicationRevisions() ApplicationRevisionInformer {
 	return &applicationRevisionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
-}
-
-// Clusters returns a ClusterInformer.
-func (v *version) Clusters() ClusterInformer {
-	return &clusterInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // ComponentDefinitions returns a ComponentDefinitionInformer.

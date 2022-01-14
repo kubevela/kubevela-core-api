@@ -27,24 +27,12 @@ type FakeCoreV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeCoreV1beta1) AppDeployments(namespace string) v1beta1.AppDeploymentInterface {
-	return &FakeAppDeployments{c, namespace}
-}
-
-func (c *FakeCoreV1beta1) AppRollouts(namespace string) v1beta1.AppRolloutInterface {
-	return &FakeAppRollouts{c, namespace}
-}
-
 func (c *FakeCoreV1beta1) Applications(namespace string) v1beta1.ApplicationInterface {
 	return &FakeApplications{c, namespace}
 }
 
 func (c *FakeCoreV1beta1) ApplicationRevisions(namespace string) v1beta1.ApplicationRevisionInterface {
 	return &FakeApplicationRevisions{c, namespace}
-}
-
-func (c *FakeCoreV1beta1) Clusters(namespace string) v1beta1.ClusterInterface {
-	return &FakeClusters{c, namespace}
 }
 
 func (c *FakeCoreV1beta1) ComponentDefinitions(namespace string) v1beta1.ComponentDefinitionInterface {
