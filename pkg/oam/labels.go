@@ -69,6 +69,9 @@ const (
 	// LabelAddonName indicates the name of the corresponding Addon
 	LabelAddonName = "addons.oam.dev/name"
 
+	// LabelAddonVersion indicates the version of the corresponding  installed Addon
+	LabelAddonVersion = "addons.oam.dev/version"
+
 	// LabelAddonRegistry indicates the name of addon-registry
 	LabelAddonRegistry = "addons.oam.dev/registry"
 
@@ -172,6 +175,7 @@ const (
 	AnnotationWorkflowName = "app.oam.dev/workflowName"
 
 	// AnnotationAppName specifies the name for application in db.
+	// Note: the annotation is only created by velaUX, please don't use it in other Source of Truth.
 	AnnotationAppName = "app.oam.dev/appName"
 
 	// AnnotationAppAlias specifies the alias for application in db.
@@ -185,4 +189,8 @@ const (
 
 	// AnnotationControllerRequirement indicates the controller version that can process the application.
 	AnnotationControllerRequirement = "app.oam.dev/controller-version-require"
+
+	// AnnotationServiceAccountName indicates the name of the ServiceAccount to use to apply Components and run Workflow.
+	// ServiceAccount will be used in the local cluster only.
+	AnnotationServiceAccountName = "app.oam.dev/service-account-name"
 )

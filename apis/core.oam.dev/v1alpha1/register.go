@@ -33,7 +33,24 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
+
+	// AddToScheme is a global function that registers this API group & version to a scheme
+	AddToScheme = SchemeBuilder.AddToScheme
+)
+
+// Policy meta
+var (
+	PolicyKind             = "Policy"
+	PolicyGroupVersionKind = SchemeGroupVersion.WithKind(PolicyKind)
+)
+
+// Workflow meta
+var (
+	WorkflowKind             = "Workflow"
+	WorkflowGroupVersionKind = SchemeGroupVersion.WithKind(PolicyKind)
 )
 
 func init() {
+	SchemeBuilder.Register(&Policy{}, &PolicyList{})
+	SchemeBuilder.Register(&Workflow{}, &WorkflowList{})
 }
