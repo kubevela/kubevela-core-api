@@ -21,8 +21,6 @@ const (
 	TopologyPolicyType = "topology"
 	// OverridePolicyType refers to the type of override policy
 	OverridePolicyType = "override"
-	// DebugPolicyType refers to the type of debug policy
-	DebugPolicyType = "debug"
 )
 
 // TopologyPolicySpec defines the spec of topology policy
