@@ -45,11 +45,7 @@ type GarbageCollectPolicyRule struct {
 }
 
 // GarbageCollectPolicyRuleSelector select the targets of the rule
-// if both traitTypes and componentTypes are specified, combination logic is OR
-// if one resource is specified with conflict strategies, strategy as component go first.
 type GarbageCollectPolicyRuleSelector struct {
-	CompNames  []string `json:"componentNames"`
-	CompTypes  []string `json:"componentTypes"`
 	TraitTypes []string `json:"traitTypes"`
 }
 
@@ -69,22 +65,16 @@ const (
 // FindStrategy find gc strategy for target resource
 func (in GarbageCollectPolicySpec) FindStrategy(manifest *unstructured.Unstructured) *GarbageCollectStrategy {
 	for _, rule := range in.Rules {
-		var compName, compType, traitType string
-		if labels := manifest.GetLabels(); labels != nil {
-			compName = labels[oam.LabelAppComponent]
-			compType = labels[oam.WorkloadTypeLabel]
-			traitType = labels[oam.TraitTypeLabel]
+		var traitType string
+		if manifest.GetLabels() != nil {
+			traitType = manifest.GetLabels()[oam.TraitTypeLabel]
 		}
-		match := func(src []string, val string) (found bool) {
-			for _, _val := range src {
-				found = found || _val == val
+		if traitType != "" {
+			for _, _traitType := range rule.Selector.TraitTypes {
+				if _traitType == traitType {
+					return &rule.Strategy
+				}
 			}
-			return val != "" && found
-		}
-		if match(rule.Selector.CompNames, compName) ||
-			match(rule.Selector.CompTypes, compType) ||
-			match(rule.Selector.TraitTypes, traitType) {
-			return &rule.Strategy
 		}
 	}
 	return nil

@@ -69,9 +69,6 @@ const (
 	// LabelAddonName indicates the name of the corresponding Addon
 	LabelAddonName = "addons.oam.dev/name"
 
-	// LabelAddonVersion indicates the version of the corresponding  installed Addon
-	LabelAddonVersion = "addons.oam.dev/version"
-
 	// LabelAddonRegistry indicates the name of addon-registry
 	LabelAddonRegistry = "addons.oam.dev/registry"
 
@@ -90,12 +87,6 @@ const (
 	// LabelRuntimeNamespaceUsage mark the usage of the namespace in runtime cluster.
 	// A control plane cluster can also be used as runtime cluster
 	LabelRuntimeNamespaceUsage = "usage.oam.dev/runtime"
-
-	// LabelConfigType means the config type
-	LabelConfigType = "config.oam.dev/type"
-
-	// LabelProject recorde the project the resource belong to
-	LabelProject = "core.oam.dev/project"
 )
 
 const (
@@ -119,9 +110,6 @@ const (
 	// AnnotationLastAppliedConfig records the previous configuration of a
 	// resource for use in a three way diff during a patching apply
 	AnnotationLastAppliedConfig = "app.oam.dev/last-applied-configuration"
-
-	// AnnotationLastAppliedTime indicates the last applied time
-	AnnotationLastAppliedTime = "app.oam.dev/last-applied-time"
 
 	// AnnotationAppRollout indicates that the application is still rolling out
 	// the application controller should treat it differently
@@ -184,7 +172,6 @@ const (
 	AnnotationWorkflowName = "app.oam.dev/workflowName"
 
 	// AnnotationAppName specifies the name for application in db.
-	// Note: the annotation is only created by velaUX, please don't use it in other Source of Truth.
 	AnnotationAppName = "app.oam.dev/appName"
 
 	// AnnotationAppAlias specifies the alias for application in db.
@@ -198,8 +185,4 @@ const (
 
 	// AnnotationControllerRequirement indicates the controller version that can process the application.
 	AnnotationControllerRequirement = "app.oam.dev/controller-version-require"
-
-	// AnnotationServiceAccountName indicates the name of the ServiceAccount to use to apply Components and run Workflow.
-	// ServiceAccount will be used in the local cluster only.
-	AnnotationServiceAccountName = "app.oam.dev/service-account-name"
 )

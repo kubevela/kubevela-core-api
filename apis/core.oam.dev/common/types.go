@@ -20,11 +20,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/oam-dev/terraform-controller/api/v1beta2"
+	"github.com/oam-dev/terraform-controller/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
@@ -119,7 +120,7 @@ type Terraform struct {
 	// Path is the sub-directory of remote git repository. It's valid when remote is set
 	Path string `json:"path,omitempty"`
 
-	v1beta2.BaseConfigurationSpec `json:",inline"`
+	v1beta1.BaseConfigurationSpec `json:",inline"`
 }
 
 // A WorkloadTypeDescriptor refer to a Workload Type
@@ -218,10 +219,8 @@ const (
 
 // ApplicationComponentStatus record the health status of App component
 type ApplicationComponentStatus struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace,omitempty"`
-	Cluster   string `json:"cluster,omitempty"`
-	Env       string `json:"env,omitempty"`
+	Name string `json:"name"`
+	Env  string `json:"env,omitempty"`
 	// WorkloadDefinition is the definition of a WorkloadDefinition, such as deployments/apps.v1
 	WorkloadDefinition WorkloadGVK              `json:"workloadDefinition,omitempty"`
 	Healthy            bool                     `json:"healthy"`
@@ -300,6 +299,10 @@ type AppStatus struct {
 	// Services record the status of the application services
 	Services []ApplicationComponentStatus `json:"services,omitempty"`
 
+	// Deprecated
+	// ResourceTracker record the status of the ResourceTracker
+	ResourceTracker *corev1.ObjectReference `json:"resourceTracker,omitempty"`
+
 	// Workflow record the status of workflow
 	Workflow *WorkflowStatus `json:"workflow,omitempty"`
 
@@ -320,23 +323,6 @@ type PolicyStatus struct {
 	Type string `json:"type"`
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Status *runtime.RawExtension `json:"status,omitempty"`
-}
-
-// WorkflowStep defines how to execute a workflow step.
-type WorkflowStep struct {
-	// Name is the unique name of the workflow step.
-	Name string `json:"name"`
-
-	Type string `json:"type"`
-
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Properties *runtime.RawExtension `json:"properties,omitempty"`
-
-	DependsOn []string `json:"dependsOn,omitempty"`
-
-	Inputs StepInputs `json:"inputs,omitempty"`
-
-	Outputs StepOutputs `json:"outputs,omitempty"`
 }
 
 // WorkflowStatus record the status of workflow
@@ -621,18 +607,4 @@ func ParseApplicationConditionType(s string) (ApplicationConditionType, error) {
 		}
 	}
 	return -1, errors.New("unknown condition type")
-}
-
-// ReferredObject the referred Kubernetes object
-type ReferredObject struct {
-	// +kubebuilder:validation:EmbeddedResource
-	// +kubebuilder:pruning:PreserveUnknownFields
-	runtime.RawExtension `json:",inline"`
-}
-
-// ReferredObjectList a list of referred Kubernetes objects
-type ReferredObjectList struct {
-	// Objects a list of Kubernetes objects.
-	// +optional
-	Objects []ReferredObject `json:"objects,omitempty"`
 }
