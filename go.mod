@@ -6,22 +6,18 @@ require (
 	cuelang.org/go v0.2.2
 	github.com/crossplane/crossplane-runtime v0.14.1-0.20210722005935-0b469fcc77cd
 	github.com/davecgh/go-spew v1.1.1
-	github.com/fatih/color v1.12.0 // indirect
 	github.com/google/go-cmp v0.5.5
-	github.com/google/uuid v1.2.0 // indirect
-	github.com/lib/pq v1.10.0 // indirect
+	github.com/oam-dev/cluster-gateway v1.3.2
 	github.com/oam-dev/terraform-controller v0.4.6
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	k8s.io/api v0.23.0
+	k8s.io/api v0.23.1
 	k8s.io/apiextensions-apiserver v0.23.0
-	k8s.io/apimachinery v0.23.0
-	k8s.io/client-go v0.23.0
+	k8s.io/apimachinery v0.23.1
+	k8s.io/client-go v0.23.1
 	k8s.io/klog/v2 v2.30.0
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
 	sigs.k8s.io/controller-runtime v0.11.0
