@@ -116,7 +116,7 @@ func (c *FakeResourceTrackers) UpdateStatus(ctx context.Context, resourceTracker
 // Delete takes name of the resourceTracker and deletes it. Returns an error if one occurs.
 func (c *FakeResourceTrackers) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(resourcetrackersResource, c.ns, name), &v1beta1.ResourceTracker{})
+		Invokes(testing.NewDeleteActionWithOptions(resourcetrackersResource, c.ns, name, opts), &v1beta1.ResourceTracker{})
 
 	return err
 }
