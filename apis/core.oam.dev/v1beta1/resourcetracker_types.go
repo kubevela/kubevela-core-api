@@ -191,9 +191,10 @@ func (in *ResourceTracker) findMangedResourceIndex(mr ManagedResource) int {
 	return -1
 }
 
-func newManagedResourceFromResource(rsc client.Object) ManagedResource {
+// AddManagedResource add object to managed resources, if exists, update
+func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool) (updated bool) {
 	gvk := rsc.GetObjectKind().GroupVersionKind()
-	return ManagedResource{
+	mr := ManagedResource{
 		ClusterObjectReference: common.ClusterObjectReference{
 			ObjectReference: v1.ObjectReference{
 				APIVersion: gvk.GroupVersion().String(),
@@ -206,22 +207,8 @@ func newManagedResourceFromResource(rsc client.Object) ManagedResource {
 		OAMObjectReference: common.NewOAMObjectReferenceFromObject(rsc),
 		Deleted:            false,
 	}
-}
-
-// ContainsManagedResource check if resource exists in ResourceTracker
-func (in *ResourceTracker) ContainsManagedResource(rsc client.Object) bool {
-	mr := newManagedResourceFromResource(rsc)
-	return in.findMangedResourceIndex(mr) >= 0
-}
-
-// AddManagedResource add object to managed resources, if exists, update
-func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool, creator common.ResourceCreatorRole) (updated bool) {
-	mr := newManagedResourceFromResource(rsc)
 	if !metaOnly {
 		mr.Data = &runtime.RawExtension{Object: rsc}
-	}
-	if creator != "" {
-		mr.ClusterObjectReference.Creator = creator
 	}
 	if idx := in.findMangedResourceIndex(mr); idx >= 0 {
 		if reflect.DeepEqual(in.Spec.ManagedResources[idx], mr) {
