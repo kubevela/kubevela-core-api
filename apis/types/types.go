@@ -19,6 +19,13 @@ package types
 import "github.com/oam-dev/kubevela-core-api/pkg/oam"
 
 const (
+	// KubeVelaName name of kubevela
+	KubeVelaName = "kubevela"
+	// VelaCoreName name of vela-core
+	VelaCoreName = "vela-core"
+)
+
+const (
 	// DefaultKubeVelaReleaseName defines the default name of KubeVela Release
 	DefaultKubeVelaReleaseName = "kubevela"
 	// DefaultKubeVelaChartName defines the default chart name of KubeVela, this variable MUST align to the chart name of this repo
@@ -41,6 +48,8 @@ var DefaultKubeVelaNS = "vela-system"
 const (
 	// AnnoDefinitionDescription is the annotation which describe what is the capability used for in a WorkloadDefinition/TraitDefinition Object
 	AnnoDefinitionDescription = "definition.oam.dev/description"
+	// AnnoDefinitionAlias is the annotation for definition alias
+	AnnoDefinitionAlias = "definition.oam.dev/alias"
 	// AnnoDefinitionIcon is the annotation which describe the icon url
 	AnnoDefinitionIcon = "definition.oam.dev/icon"
 	// AnnoDefinitionAppliedWorkloads is the annotation which describe what is the workloads used for in a TraitDefinition Object
@@ -159,4 +168,9 @@ const (
 	ProviderNamespace = "default"
 	// VelaCoreConfig is to mark application, config and its secret or Terraform provider lelong to a KubeVela config
 	VelaCoreConfig = "velacore-config"
+)
+
+const (
+	// ClusterGatewayAccessorGroup the group to impersonate which allows the access to the cluster-gateway
+	ClusterGatewayAccessorGroup = "cluster-gateway-accessor"
 )
