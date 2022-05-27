@@ -199,13 +199,7 @@ const (
 	// AnnotationControllerRequirement indicates the controller version that can process the application.
 	AnnotationControllerRequirement = "app.oam.dev/controller-version-require"
 
-	// AnnotationApplicationServiceAccountName indicates the name of the ServiceAccount to use to apply Components and run Workflow.
+	// AnnotationServiceAccountName indicates the name of the ServiceAccount to use to apply Components and run Workflow.
 	// ServiceAccount will be used in the local cluster only.
-	AnnotationApplicationServiceAccountName = "app.oam.dev/service-account-name"
-
-	// AnnotationApplicationUsername indicates the username of the Application to use to apply resources
-	AnnotationApplicationUsername = "app.oam.dev/username"
-
-	// AnnotationApplicationGroup indicates the group of the Application to use to apply resources
-	AnnotationApplicationGroup = "app.oam.dev/group"
+	AnnotationServiceAccountName = "app.oam.dev/service-account-name"
 )

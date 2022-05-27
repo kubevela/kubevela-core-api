@@ -116,7 +116,7 @@ func (c *FakeWorkflowStepDefinitions) UpdateStatus(ctx context.Context, workflow
 // Delete takes name of the workflowStepDefinition and deletes it. Returns an error if one occurs.
 func (c *FakeWorkflowStepDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteActionWithOptions(workflowstepdefinitionsResource, c.ns, name, opts), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewDeleteAction(workflowstepdefinitionsResource, c.ns, name), &v1beta1.WorkflowStepDefinition{})
 
 	return err
 }
