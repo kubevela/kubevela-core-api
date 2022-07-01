@@ -43,9 +43,6 @@ type PolicyDefinitionStatus struct {
 	// ConditionedStatus reflects the observed status of a resource
 	condition.ConditionedStatus `json:",inline"`
 
-	// ConfigMapRef refer to a ConfigMap which contains OpenAPI V3 JSON schema of Component parameters.
-	ConfigMapRef string `json:"configMapRef,omitempty"`
-
 	// LatestRevision of the component definition
 	// +optional
 	LatestRevision *common.Revision `json:"latestRevision,omitempty"`
@@ -64,7 +61,7 @@ func (d *PolicyDefinition) GetCondition(conditionType condition.ConditionType) c
 // +kubebuilder:object:root=true
 
 // PolicyDefinition is the Schema for the policydefinitions API
-// +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=def-policy
+// +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=policy
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +genclient

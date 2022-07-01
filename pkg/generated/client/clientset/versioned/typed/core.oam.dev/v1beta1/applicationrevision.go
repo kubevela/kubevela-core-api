@@ -39,7 +39,6 @@ type ApplicationRevisionsGetter interface {
 type ApplicationRevisionInterface interface {
 	Create(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.CreateOptions) (*v1beta1.ApplicationRevision, error)
 	Update(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error)
-	UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
 	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.ApplicationRevision, error)
@@ -128,22 +127,6 @@ func (c *applicationRevisions) Update(ctx context.Context, applicationRevision *
 		Namespace(c.ns).
 		Resource("applicationrevisions").
 		Name(applicationRevision.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(applicationRevision).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *applicationRevisions) UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (result *v1beta1.ApplicationRevision, err error) {
-	result = &v1beta1.ApplicationRevision{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("applicationrevisions").
-		Name(applicationRevision.Name).
-		SubResource("status").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(applicationRevision).
 		Do(ctx).

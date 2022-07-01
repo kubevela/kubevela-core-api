@@ -19,13 +19,11 @@ package v1alpha1
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
-
-	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 )
 
 // Package type metadata.
 const (
-	Group   = common.Group
+	Group   = "core.oam.dev"
 	Version = "v1alpha1"
 )
 
@@ -35,24 +33,7 @@ var (
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
-
-	// AddToScheme is a global function that registers this API group & version to a scheme
-	AddToScheme = SchemeBuilder.AddToScheme
-)
-
-// Policy meta
-var (
-	PolicyKind             = "Policy"
-	PolicyGroupVersionKind = SchemeGroupVersion.WithKind(PolicyKind)
-)
-
-// Workflow meta
-var (
-	WorkflowKind             = "Workflow"
-	WorkflowGroupVersionKind = SchemeGroupVersion.WithKind(WorkflowKind)
 )
 
 func init() {
-	SchemeBuilder.Register(&Policy{}, &PolicyList{})
-	SchemeBuilder.Register(&Workflow{}, &WorkflowList{})
 }
