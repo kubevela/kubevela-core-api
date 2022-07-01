@@ -31,6 +31,7 @@ import (
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	"github.com/oam-dev/kubevela-core-api/apis/interfaces"
+	velatypes "github.com/oam-dev/kubevela-core-api/apis/types"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 	"github.com/oam-dev/kubevela-core-api/pkg/utils/errors"
 )
@@ -121,7 +122,11 @@ func (in ManagedResource) NamespacedName() types.NamespacedName {
 // ResourceKey computes the key for managed resource, resources with the same key points to the same resource
 func (in ManagedResource) ResourceKey() string {
 	gv, kind := in.GroupVersionKind().ToAPIVersionAndKind()
-	return strings.Join([]string{gv, kind, in.Cluster, in.Namespace, in.Name}, "/")
+	cluster := in.Cluster
+	if cluster == "" {
+		cluster = velatypes.ClusterLocalName
+	}
+	return strings.Join([]string{gv, kind, cluster, in.Namespace, in.Name}, "/")
 }
 
 // ComponentKey computes the key for the component which managed resource belongs to
