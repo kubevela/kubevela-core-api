@@ -104,7 +104,7 @@ func (c *FakeScopeDefinitions) Update(ctx context.Context, scopeDefinition *v1be
 // Delete takes name of the scopeDefinition and deletes it. Returns an error if one occurs.
 func (c *FakeScopeDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(scopedefinitionsResource, c.ns, name), &v1beta1.ScopeDefinition{})
+		Invokes(testing.NewDeleteActionWithOptions(scopedefinitionsResource, c.ns, name, opts), &v1beta1.ScopeDefinition{})
 
 	return err
 }

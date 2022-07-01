@@ -116,7 +116,7 @@ func (c *FakeComponentDefinitions) UpdateStatus(ctx context.Context, componentDe
 // Delete takes name of the componentDefinition and deletes it. Returns an error if one occurs.
 func (c *FakeComponentDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(componentdefinitionsResource, c.ns, name), &v1beta1.ComponentDefinition{})
+		Invokes(testing.NewDeleteActionWithOptions(componentdefinitionsResource, c.ns, name, opts), &v1beta1.ComponentDefinition{})
 
 	return err
 }
