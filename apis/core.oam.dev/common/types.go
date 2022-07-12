@@ -216,19 +216,19 @@ type WorkflowState string
 
 const (
 	// WorkflowStateInitializing means the workflow is in initial state
-	WorkflowStateInitializing WorkflowState = "Initializing"
+	WorkflowStateInitializing WorkflowState = "initializing"
 	// WorkflowStateTerminated means workflow is terminated manually, and it won't be started unless the spec changed.
-	WorkflowStateTerminated WorkflowState = "Terminated"
+	WorkflowStateTerminated WorkflowState = "terminated"
 	// WorkflowStateSuspended means workflow is suspended manually, and it can be resumed.
-	WorkflowStateSuspended WorkflowState = "Suspended"
+	WorkflowStateSuspended WorkflowState = "suspended"
 	// WorkflowStateSucceeded means workflow is running successfully, all steps finished.
 	WorkflowStateSucceeded WorkflowState = "Succeeded"
 	// WorkflowStateFinished means workflow is end.
-	WorkflowStateFinished WorkflowState = "Finished"
+	WorkflowStateFinished WorkflowState = "finished"
 	// WorkflowStateExecuting means workflow is still running or waiting some steps.
-	WorkflowStateExecuting WorkflowState = "Executing"
+	WorkflowStateExecuting WorkflowState = "executing"
 	// WorkflowStateSkipping means it will skip this reconcile and let next reconcile to handle it.
-	WorkflowStateSkipping WorkflowState = "Skipping"
+	WorkflowStateSkipping WorkflowState = "skipping"
 )
 
 // ApplicationComponentStatus record the health status of App component
@@ -342,8 +342,6 @@ type WorkflowStep struct {
 
 	Type string `json:"type"`
 
-	Meta *WorkflowStepMeta `json:"meta,omitempty"`
-
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Properties *runtime.RawExtension `json:"properties,omitempty"`
 
@@ -351,18 +349,11 @@ type WorkflowStep struct {
 
 	If string `json:"if,omitempty"`
 
-	Timeout string `json:"timeout,omitempty"`
-
 	DependsOn []string `json:"dependsOn,omitempty"`
 
 	Inputs StepInputs `json:"inputs,omitempty"`
 
 	Outputs StepOutputs `json:"outputs,omitempty"`
-}
-
-// WorkflowStepMeta contains the meta data of a workflow step
-type WorkflowStepMeta struct {
-	Alias string `json:"alias,omitempty"`
 }
 
 // WorkflowSubStep defines how to execute a workflow subStep.
@@ -372,14 +363,10 @@ type WorkflowSubStep struct {
 
 	Type string `json:"type"`
 
-	Meta *WorkflowStepMeta `json:"meta,omitempty"`
-
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Properties *runtime.RawExtension `json:"properties,omitempty"`
 
 	If string `json:"if,omitempty"`
-
-	Timeout string `json:"timeout,omitempty"`
 
 	DependsOn []string `json:"dependsOn,omitempty"`
 
