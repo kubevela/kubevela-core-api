@@ -80,6 +80,8 @@ const (
 	OpenapiV3JSONSchema string = "openapi-v3-json-schema"
 	// UISchema is the key to store ui custom schema
 	UISchema string = "ui-schema"
+	// VelaQLConfigmapKey is the key to store velaql view
+	VelaQLConfigmapKey string = "template"
 )
 
 // CapabilityCategory defines the category of a capability
@@ -163,6 +165,7 @@ type Capability struct {
 	Center         string             `json:"center,omitempty"`
 	Status         string             `json:"status,omitempty"`
 	Description    string             `json:"description,omitempty"`
+	Example        string             `json:"example,omitempty"`
 	Labels         map[string]string  `json:"labels,omitempty"`
 	Category       CapabilityCategory `json:"category,omitempty"`
 
