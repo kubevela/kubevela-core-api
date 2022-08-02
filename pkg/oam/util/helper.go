@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"hash"
 	"hash/fnv"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -66,6 +67,9 @@ const (
 
 	// DummyTraitMessage is a message for trait which don't have definition found
 	DummyTraitMessage = "No TraitDefinition found, all framework capabilities will work as default"
+
+	// DefinitionNamespaceEnv is env key for specifying a namespace to fetch definition
+	DefinitionNamespaceEnv = "DEFINITION_NAMESPACE"
 )
 
 const (
@@ -303,8 +307,35 @@ func SetNamespaceInCtx(ctx context.Context, namespace string) context.Context {
 	return ctx
 }
 
+// GetServiceAccountInContext returns the name of the service account which reconciles the app from the context.
+func GetServiceAccountInContext(ctx context.Context) string {
+	if serviceAccount, ok := ctx.Value(ServiceAccountContextKey).(string); ok {
+		return serviceAccount
+	}
+	return ""
+}
+
+// SetServiceAccountInContext sets the name of the service account which reconciles the app.
+func SetServiceAccountInContext(ctx context.Context, namespace, name string) context.Context {
+	if name == "" {
+		// We may set `default` service account when the service account name is omitted.
+		// However, setting `default` service account will break existing cluster-scoped applications,
+		// so it would be better to give users a migration term.
+		// TODO(devholic): Use `default` service account if omitted.
+		return ctx
+	}
+	return context.WithValue(ctx, ServiceAccountContextKey, fmt.Sprintf("system:serviceaccount:%s:%s", namespace, name))
+}
+
 // GetDefinition get definition from two level namespace
 func GetDefinition(ctx context.Context, cli client.Reader, definition client.Object, definitionName string) error {
+	if dns := os.Getenv(DefinitionNamespaceEnv); dns != "" {
+		if err := cli.Get(ctx, types.NamespacedName{Name: definitionName, Namespace: dns}, definition); err == nil {
+			return nil
+		} else if !apierrors.IsNotFound(err) {
+			return err
+		}
+	}
 	appNs := GetDefinitionNamespaceWithCtx(ctx)
 	if err := cli.Get(ctx, types.NamespacedName{Name: definitionName, Namespace: appNs}, definition); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -952,39 +983,4 @@ func AsController(r *corev1.ObjectReference) metav1.OwnerReference {
 	ref := AsOwner(r)
 	ref.Controller = &c
 	return ref
-}
-
-// NamespaceAccessor namespace accessor for resource
-type NamespaceAccessor interface {
-	For(obj client.Object) string
-	Namespace() string
-}
-
-type applicationResourceNamespaceAccessor struct {
-	applicationNamespace string
-	overrideNamespace    string
-}
-
-// For access namespace for resource
-func (accessor *applicationResourceNamespaceAccessor) For(obj client.Object) string {
-	if accessor.overrideNamespace != "" {
-		return accessor.overrideNamespace
-	}
-	if originalNamespace := obj.GetNamespace(); originalNamespace != "" {
-		return originalNamespace
-	}
-	return accessor.applicationNamespace
-}
-
-// Namespace the namespace by default
-func (accessor *applicationResourceNamespaceAccessor) Namespace() string {
-	if accessor.overrideNamespace != "" {
-		return accessor.overrideNamespace
-	}
-	return accessor.applicationNamespace
-}
-
-// NewApplicationResourceNamespaceAccessor create namespace accessor for resource in application
-func NewApplicationResourceNamespaceAccessor(appNs, overrideNs string) NamespaceAccessor {
-	return &applicationResourceNamespaceAccessor{applicationNamespace: appNs, overrideNamespace: overrideNs}
 }
