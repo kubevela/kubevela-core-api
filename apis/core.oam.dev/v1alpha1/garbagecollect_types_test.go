@@ -32,9 +32,9 @@ func TestGarbageCollectPolicySpec_FindStrategy(t *testing.T) {
 		notFound       bool
 		expectStrategy GarbageCollectStrategy
 	}{
-		"trait type rule match": {
+		"trait rule match": {
 			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{TraitTypes: []string{"a"}},
+				Selector: GarbageCollectPolicyRuleSelector{TraitTypes: []string{"a"}},
 				Strategy: GarbageCollectStrategyNever,
 			}},
 			input: &unstructured.Unstructured{Object: map[string]interface{}{
@@ -44,20 +44,20 @@ func TestGarbageCollectPolicySpec_FindStrategy(t *testing.T) {
 			}},
 			expectStrategy: GarbageCollectStrategyNever,
 		},
-		"trait type rule mismatch": {
+		"trait rule mismatch": {
 			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{TraitTypes: []string{"a"}},
+				Selector: GarbageCollectPolicyRuleSelector{TraitTypes: []string{"a"}},
 				Strategy: GarbageCollectStrategyNever,
 			}},
 			input:    &unstructured.Unstructured{Object: map[string]interface{}{}},
 			notFound: true,
 		},
-		"trait type rule multiple match": {
+		"trait rule multiple match": {
 			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{TraitTypes: []string{"a"}},
+				Selector: GarbageCollectPolicyRuleSelector{TraitTypes: []string{"a"}},
 				Strategy: GarbageCollectStrategyOnAppDelete,
 			}, {
-				Selector: ResourcePolicyRuleSelector{TraitTypes: []string{"a"}},
+				Selector: GarbageCollectPolicyRuleSelector{TraitTypes: []string{"a"}},
 				Strategy: GarbageCollectStrategyNever,
 			}},
 			input: &unstructured.Unstructured{Object: map[string]interface{}{
@@ -66,60 +66,6 @@ func TestGarbageCollectPolicySpec_FindStrategy(t *testing.T) {
 				},
 			}},
 			expectStrategy: GarbageCollectStrategyOnAppDelete,
-		},
-		"component type rule match": {
-			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{CompTypes: []string{"comp"}},
-				Strategy: GarbageCollectStrategyNever,
-			}},
-			input: &unstructured.Unstructured{Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
-					"labels": map[string]interface{}{oam.WorkloadTypeLabel: "comp"},
-				},
-			}},
-			expectStrategy: GarbageCollectStrategyNever,
-		},
-		"rule match both component type and trait type, component type first": {
-			rules: []GarbageCollectPolicyRule{
-				{
-					Selector: ResourcePolicyRuleSelector{CompTypes: []string{"comp"}},
-					Strategy: GarbageCollectStrategyNever,
-				},
-				{
-					Selector: ResourcePolicyRuleSelector{TraitTypes: []string{"trait"}},
-					Strategy: GarbageCollectStrategyOnAppDelete,
-				},
-			},
-			input: &unstructured.Unstructured{Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
-					"labels": map[string]interface{}{oam.WorkloadTypeLabel: "comp", oam.TraitTypeLabel: "trait"},
-				},
-			}},
-			expectStrategy: GarbageCollectStrategyNever,
-		},
-		"component name rule match": {
-			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{CompNames: []string{"comp-name"}},
-				Strategy: GarbageCollectStrategyNever,
-			}},
-			input: &unstructured.Unstructured{Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
-					"labels": map[string]interface{}{oam.LabelAppComponent: "comp-name"},
-				},
-			}},
-			expectStrategy: GarbageCollectStrategyNever,
-		},
-		"resource type rule match": {
-			rules: []GarbageCollectPolicyRule{{
-				Selector: ResourcePolicyRuleSelector{OAMResourceTypes: []string{"TRAIT"}},
-				Strategy: GarbageCollectStrategyNever,
-			}},
-			input: &unstructured.Unstructured{Object: map[string]interface{}{
-				"metadata": map[string]interface{}{
-					"labels": map[string]interface{}{oam.LabelOAMResourceType: "TRAIT"},
-				},
-			}},
-			expectStrategy: GarbageCollectStrategyNever,
 		},
 	}
 	for name, tc := range testCases {

@@ -21,13 +21,13 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
+	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/yaml"
-
-	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
-	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 )
 
 // JSONMarshal returns the JSON encoding
@@ -180,19 +180,6 @@ func UnMarshalStringToWorkloadDefinition(s string) (*v1alpha2.WorkloadDefinition
 // UnMarshalStringToTraitDefinition parse a string to a traitDefinition object
 func UnMarshalStringToTraitDefinition(s string) (*v1beta1.TraitDefinition, error) {
 	obj := &v1beta1.TraitDefinition{}
-	_body, err := yaml.YAMLToJSON([]byte(s))
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(_body, obj); err != nil {
-		return nil, err
-	}
-	return obj, nil
-}
-
-// UnMarshalStringToPolicyDefinition parse a string to a policyDefinition object
-func UnMarshalStringToPolicyDefinition(s string) (*v1beta1.PolicyDefinition, error) {
-	obj := &v1beta1.PolicyDefinition{}
 	_body, err := yaml.YAMLToJSON([]byte(s))
 	if err != nil {
 		return nil, err

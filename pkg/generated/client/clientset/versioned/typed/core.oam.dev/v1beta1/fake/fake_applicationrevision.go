@@ -101,22 +101,10 @@ func (c *FakeApplicationRevisions) Update(ctx context.Context, applicationRevisi
 	return obj.(*v1beta1.ApplicationRevision), err
 }
 
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeApplicationRevisions) UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(applicationrevisionsResource, "status", c.ns, applicationRevision), &v1beta1.ApplicationRevision{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.ApplicationRevision), err
-}
-
 // Delete takes name of the applicationRevision and deletes it. Returns an error if one occurs.
 func (c *FakeApplicationRevisions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteActionWithOptions(applicationrevisionsResource, c.ns, name, opts), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewDeleteAction(applicationrevisionsResource, c.ns, name), &v1beta1.ApplicationRevision{})
 
 	return err
 }

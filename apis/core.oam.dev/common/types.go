@@ -20,11 +20,12 @@ import (
 	"encoding/json"
 	"errors"
 
-	types "github.com/oam-dev/terraform-controller/api/types/crossplane-runtime"
+	"github.com/oam-dev/terraform-controller/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 	"github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
@@ -119,22 +120,7 @@ type Terraform struct {
 	// Path is the sub-directory of remote git repository. It's valid when remote is set
 	Path string `json:"path,omitempty"`
 
-	// WriteConnectionSecretToReference specifies the namespace and name of a
-	// Secret to which any connection details for this managed resource should
-	// be written. Connection details frequently include the endpoint, username,
-	// and password required to connect to the managed resource.
-	// +optional
-	WriteConnectionSecretToReference *types.SecretReference `json:"writeConnectionSecretToRef,omitempty"`
-
-	// ProviderReference specifies the reference to Provider
-	ProviderReference *types.Reference `json:"providerRef,omitempty"`
-
-	// DeleteResource will determine whether provisioned cloud resources will be deleted when CR is deleted
-	// +kubebuilder:default:=true
-	DeleteResource bool `json:"deleteResource,omitempty"`
-
-	// Region is cloud provider's region. It will override the region in the region field of ProviderReference
-	Region string `json:"customRegion,omitempty"`
+	v1beta1.BaseConfigurationSpec `json:",inline"`
 }
 
 // A WorkloadTypeDescriptor refer to a Workload Type
@@ -216,27 +202,25 @@ type WorkflowState string
 
 const (
 	// WorkflowStateInitializing means the workflow is in initial state
-	WorkflowStateInitializing WorkflowState = "Initializing"
+	WorkflowStateInitializing WorkflowState = "initializing"
 	// WorkflowStateTerminated means workflow is terminated manually, and it won't be started unless the spec changed.
-	WorkflowStateTerminated WorkflowState = "Terminated"
+	WorkflowStateTerminated WorkflowState = "terminated"
 	// WorkflowStateSuspended means workflow is suspended manually, and it can be resumed.
-	WorkflowStateSuspended WorkflowState = "Suspended"
+	WorkflowStateSuspended WorkflowState = "suspended"
 	// WorkflowStateSucceeded means workflow is running successfully, all steps finished.
 	WorkflowStateSucceeded WorkflowState = "Succeeded"
 	// WorkflowStateFinished means workflow is end.
-	WorkflowStateFinished WorkflowState = "Finished"
+	WorkflowStateFinished WorkflowState = "finished"
 	// WorkflowStateExecuting means workflow is still running or waiting some steps.
-	WorkflowStateExecuting WorkflowState = "Executing"
+	WorkflowStateExecuting WorkflowState = "executing"
 	// WorkflowStateSkipping means it will skip this reconcile and let next reconcile to handle it.
-	WorkflowStateSkipping WorkflowState = "Skipping"
+	WorkflowStateSkipping WorkflowState = "skipping"
 )
 
 // ApplicationComponentStatus record the health status of App component
 type ApplicationComponentStatus struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace,omitempty"`
-	Cluster   string `json:"cluster,omitempty"`
-	Env       string `json:"env,omitempty"`
+	Name string `json:"name"`
+	Env  string `json:"env,omitempty"`
 	// WorkloadDefinition is the definition of a WorkloadDefinition, such as deployments/apps.v1
 	WorkloadDefinition WorkloadGVK              `json:"workloadDefinition,omitempty"`
 	Healthy            bool                     `json:"healthy"`
@@ -268,8 +252,25 @@ type RawComponent struct {
 	Raw runtime.RawExtension `json:"raw"`
 }
 
-// StepStatus record the base status of workflow step, which could be workflow step or subStep
-type StepStatus struct {
+// WorkflowStepStatus record the status of a workflow step
+type WorkflowStepStatus struct {
+	ID    string            `json:"id"`
+	Name  string            `json:"name,omitempty"`
+	Type  string            `json:"type,omitempty"`
+	Phase WorkflowStepPhase `json:"phase,omitempty"`
+	// A human readable message indicating details about why the workflowStep is in this state.
+	Message string `json:"message,omitempty"`
+	// A brief CamelCase message indicating details about why the workflowStep is in this state.
+	Reason   string          `json:"reason,omitempty"`
+	SubSteps *SubStepsStatus `json:"subSteps,omitempty"`
+	// FirstExecuteTime is the first time this step execution.
+	FirstExecuteTime metav1.Time `json:"firstExecuteTime,omitempty"`
+	// LastExecuteTime is the last time this step execution.
+	LastExecuteTime metav1.Time `json:"lastExecuteTime,omitempty"`
+}
+
+// WorkflowSubStepStatus record the status of a workflow step
+type WorkflowSubStepStatus struct {
 	ID    string            `json:"id"`
 	Name  string            `json:"name,omitempty"`
 	Type  string            `json:"type,omitempty"`
@@ -278,21 +279,6 @@ type StepStatus struct {
 	Message string `json:"message,omitempty"`
 	// A brief CamelCase message indicating details about why the workflowStep is in this state.
 	Reason string `json:"reason,omitempty"`
-	// FirstExecuteTime is the first time this step execution.
-	FirstExecuteTime metav1.Time `json:"firstExecuteTime,omitempty"`
-	// LastExecuteTime is the last time this step execution.
-	LastExecuteTime metav1.Time `json:"lastExecuteTime,omitempty"`
-}
-
-// WorkflowStepStatus record the status of a workflow step, include step status and subStep status
-type WorkflowStepStatus struct {
-	StepStatus     `json:",inline"`
-	SubStepsStatus []WorkflowSubStepStatus `json:"subSteps,omitempty"`
-}
-
-// WorkflowSubStepStatus record the status of a workflow subStep
-type WorkflowSubStepStatus struct {
-	StepStatus `json:",inline"`
 }
 
 // AppStatus defines the observed state of Application
@@ -312,6 +298,10 @@ type AppStatus struct {
 
 	// Services record the status of the application services
 	Services []ApplicationComponentStatus `json:"services,omitempty"`
+
+	// Deprecated
+	// ResourceTracker record the status of the ResourceTracker
+	ResourceTracker *corev1.ObjectReference `json:"resourceTracker,omitempty"`
 
 	// Workflow record the status of workflow
 	Workflow *WorkflowStatus `json:"workflow,omitempty"`
@@ -335,66 +325,11 @@ type PolicyStatus struct {
 	Status *runtime.RawExtension `json:"status,omitempty"`
 }
 
-// WorkflowStep defines how to execute a workflow step.
-type WorkflowStep struct {
-	// Name is the unique name of the workflow step.
-	Name string `json:"name"`
-
-	Type string `json:"type"`
-
-	Meta *WorkflowStepMeta `json:"meta,omitempty"`
-
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Properties *runtime.RawExtension `json:"properties,omitempty"`
-
-	SubSteps []WorkflowSubStep `json:"subSteps,omitempty"`
-
-	If string `json:"if,omitempty"`
-
-	Timeout string `json:"timeout,omitempty"`
-
-	DependsOn []string `json:"dependsOn,omitempty"`
-
-	Inputs StepInputs `json:"inputs,omitempty"`
-
-	Outputs StepOutputs `json:"outputs,omitempty"`
-}
-
-// WorkflowStepMeta contains the meta data of a workflow step
-type WorkflowStepMeta struct {
-	Alias string `json:"alias,omitempty"`
-}
-
-// WorkflowSubStep defines how to execute a workflow subStep.
-type WorkflowSubStep struct {
-	// Name is the unique name of the workflow step.
-	Name string `json:"name"`
-
-	Type string `json:"type"`
-
-	Meta *WorkflowStepMeta `json:"meta,omitempty"`
-
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Properties *runtime.RawExtension `json:"properties,omitempty"`
-
-	If string `json:"if,omitempty"`
-
-	Timeout string `json:"timeout,omitempty"`
-
-	DependsOn []string `json:"dependsOn,omitempty"`
-
-	Inputs StepInputs `json:"inputs,omitempty"`
-
-	Outputs StepOutputs `json:"outputs,omitempty"`
-}
-
 // WorkflowStatus record the status of workflow
 type WorkflowStatus struct {
 	AppRevision string       `json:"appRevision,omitempty"`
 	Mode        WorkflowMode `json:"mode"`
 	Message     string       `json:"message,omitempty"`
-
-	SuspendState string `json:"suspendState,omitempty"`
 
 	Suspend    bool `json:"suspend"`
 	Terminated bool `json:"terminated"`
@@ -406,6 +341,13 @@ type WorkflowStatus struct {
 	StartTime metav1.Time `json:"startTime,omitempty"`
 }
 
+// SubStepsStatus record the status of workflow steps.
+type SubStepsStatus struct {
+	StepIndex int                     `json:"stepIndex,omitempty"`
+	Mode      WorkflowMode            `json:"mode,omitempty"`
+	Steps     []WorkflowSubStepStatus `json:"steps,omitempty"`
+}
+
 // WorkflowStepPhase describes the phase of a workflow step.
 type WorkflowStepPhase string
 
@@ -414,14 +356,10 @@ const (
 	WorkflowStepPhaseSucceeded WorkflowStepPhase = "succeeded"
 	// WorkflowStepPhaseFailed will report error in `message`.
 	WorkflowStepPhaseFailed WorkflowStepPhase = "failed"
-	// WorkflowStepPhaseSkipped will make the controller skip the step.
-	WorkflowStepPhaseSkipped WorkflowStepPhase = "skipped"
 	// WorkflowStepPhaseStopped will make the controller stop the workflow.
 	WorkflowStepPhaseStopped WorkflowStepPhase = "stopped"
 	// WorkflowStepPhaseRunning will make the controller continue the workflow.
 	WorkflowStepPhaseRunning WorkflowStepPhase = "running"
-	// WorkflowStepPhasePending will make the controller wait for the step to run.
-	WorkflowStepPhasePending WorkflowStepPhase = "pending"
 )
 
 // DefinitionType describes the type of DefinitionRevision.
@@ -544,8 +482,6 @@ const (
 	PolicyResourceCreator ResourceCreatorRole = "policy"
 	// WorkflowResourceCreator create the resource in workflow.
 	WorkflowResourceCreator ResourceCreatorRole = "workflow"
-	// DebugResourceCreator create the debug resource.
-	DebugResourceCreator ResourceCreatorRole = "debug"
 )
 
 // OAMObjectReference defines the object reference for an oam resource
@@ -671,18 +607,4 @@ func ParseApplicationConditionType(s string) (ApplicationConditionType, error) {
 		}
 	}
 	return -1, errors.New("unknown condition type")
-}
-
-// ReferredObject the referred Kubernetes object
-type ReferredObject struct {
-	// +kubebuilder:validation:EmbeddedResource
-	// +kubebuilder:pruning:PreserveUnknownFields
-	runtime.RawExtension `json:",inline"`
-}
-
-// ReferredObjectList a list of referred Kubernetes objects
-type ReferredObjectList struct {
-	// Objects a list of Kubernetes objects.
-	// +optional
-	Objects []ReferredObject `json:"objects,omitempty"`
 }
