@@ -116,7 +116,7 @@ func (c *FakeWorkloadDefinitions) UpdateStatus(ctx context.Context, workloadDefi
 // Delete takes name of the workloadDefinition and deletes it. Returns an error if one occurs.
 func (c *FakeWorkloadDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(workloaddefinitionsResource, c.ns, name), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewDeleteActionWithOptions(workloaddefinitionsResource, c.ns, name, opts), &v1beta1.WorkloadDefinition{})
 
 	return err
 }

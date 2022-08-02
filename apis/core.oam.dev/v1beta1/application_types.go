@@ -54,8 +54,15 @@ type WorkflowStep common.WorkflowStep
 
 // Workflow defines workflow steps and other attributes
 type Workflow struct {
-	Ref   string         `json:"ref,omitempty"`
-	Steps []WorkflowStep `json:"steps,omitempty"`
+	Ref   string               `json:"ref,omitempty"`
+	Mode  *WorkflowExecuteMode `json:"mode,omitempty"`
+	Steps []WorkflowStep       `json:"steps,omitempty"`
+}
+
+// WorkflowExecuteMode defines the mode of workflow execution
+type WorkflowExecuteMode struct {
+	Steps    common.WorkflowMode `json:"steps,omitempty"`
+	SubSteps common.WorkflowMode `json:"subSteps,omitempty"`
 }
 
 // ApplicationSpec is the spec of Application
@@ -82,7 +89,7 @@ type ApplicationSpec struct {
 // Application is the Schema for the applications API
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories={oam},shortName=app
+// +kubebuilder:resource:categories={oam},shortName={app,velaapp}
 // +kubebuilder:printcolumn:name="COMPONENT",type=string,JSONPath=`.spec.components[*].name`
 // +kubebuilder:printcolumn:name="TYPE",type=string,JSONPath=`.spec.components[*].type`
 // +kubebuilder:printcolumn:name="PHASE",type=string,JSONPath=`.status.status`
