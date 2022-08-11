@@ -208,7 +208,7 @@ const (
 	// AnnotationWorkloadName indicates the managed workload's name by trait
 	AnnotationWorkloadName = "trait.oam.dev/workload-name"
 
-	// AnnotationControllerRequirement indicates the controller version that can process the application.
+	// AnnotationControllerRequirement indicates the controller version that can process the application/definition.
 	AnnotationControllerRequirement = "app.oam.dev/controller-version-require"
 
 	// AnnotationApplicationServiceAccountName indicates the name of the ServiceAccount to use to apply Components and run Workflow.
@@ -227,8 +227,12 @@ const (
 	// AnnotationResourceURL records the source url of the Kubernetes object
 	AnnotationResourceURL = "app.oam.dev/resource-url"
 
-	// AnnotationIgnoreWithoutCompKey indicates the bond component
+	// AnnotationIgnoreWithoutCompKey indicates the bond component.
+	// Deprecated: please use AnnotationAddonDefinitionBindCompKey.
 	AnnotationIgnoreWithoutCompKey = "addon.oam.dev/ignore-without-component"
+
+	// AnnotationAddonDefinitionBondCompKey indicates the definition in addon bond component.
+	AnnotationAddonDefinitionBondCompKey = "addon.oam.dev/bind-component"
 )
 
 const (
