@@ -69,6 +69,9 @@ const (
 	// LabelAddonName indicates the name of the corresponding Addon
 	LabelAddonName = "addons.oam.dev/name"
 
+	// LabelAddonAuxiliaryName indicates the name of the auxiliary resource in addon app template
+	LabelAddonAuxiliaryName = "addons.oam.dev/auxiliary-name"
+
 	// LabelAddonVersion indicates the version of the corresponding  installed Addon
 	LabelAddonVersion = "addons.oam.dev/version"
 
@@ -97,7 +100,11 @@ const (
 	// LabelProject recorde the project the resource belong to
 	LabelProject = "core.oam.dev/project"
 
+	// LabelResourceRules defines the configmap is representing the resource topology rules
 	LabelResourceRules = "rules.oam.dev/resources"
+
+	// LabelResourceRuleFormat defines the resource format of the resource topology rules
+	LabelResourceRuleFormat = "rules.oam.dev/resource-format"
 
 	// LabelControllerName indicates the controller name
 	LabelControllerName = "controller.oam.dev/name"
@@ -213,4 +220,24 @@ const (
 
 	// AnnotationApplicationGroup indicates the group of the Application to use to apply resources
 	AnnotationApplicationGroup = "app.oam.dev/group"
+
+	// AnnotationAppSharedBy records who share the application
+	AnnotationAppSharedBy = "app.oam.dev/shared-by"
+
+	// AnnotationResourceURL records the source url of the Kubernetes object
+	AnnotationResourceURL = "app.oam.dev/resource-url"
+
+	// AnnotationIgnoreWithoutCompKey indicates the bond component.
+	// Deprecated: please use AnnotationAddonDefinitionBindCompKey.
+	AnnotationIgnoreWithoutCompKey = "addon.oam.dev/ignore-without-component"
+
+	// AnnotationAddonDefinitionBondCompKey indicates the definition in addon bond component.
+	AnnotationAddonDefinitionBondCompKey = "addon.oam.dev/bind-component"
+)
+
+const (
+	// ResourceTopologyFormatYAML mark the format of resource topology is yaml, by default, it's yaml.
+	ResourceTopologyFormatYAML = "yaml"
+	// ResourceTopologyFormatJSON mark the format of resource topology is json.
+	ResourceTopologyFormatJSON = "json"
 )
