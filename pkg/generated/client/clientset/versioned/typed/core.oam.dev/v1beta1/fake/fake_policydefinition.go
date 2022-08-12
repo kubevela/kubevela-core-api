@@ -116,7 +116,7 @@ func (c *FakePolicyDefinitions) UpdateStatus(ctx context.Context, policyDefiniti
 // Delete takes name of the policyDefinition and deletes it. Returns an error if one occurs.
 func (c *FakePolicyDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(policydefinitionsResource, c.ns, name), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewDeleteActionWithOptions(policydefinitionsResource, c.ns, name, opts), &v1beta1.PolicyDefinition{})
 
 	return err
 }
