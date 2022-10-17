@@ -82,8 +82,6 @@ type ManagedResource struct {
 	Data *runtime.RawExtension `json:"raw,omitempty"`
 	// Deleted marks the resource to be deleted
 	Deleted bool `json:"deleted,omitempty"`
-	// SkipGC marks the resource to skip gc
-	SkipGC bool `json:"skipGC,omitempty"`
 }
 
 // Equal check if two managed resource equals
@@ -123,13 +121,12 @@ func (in ManagedResource) NamespacedName() types.NamespacedName {
 
 // ResourceKey computes the key for managed resource, resources with the same key points to the same resource
 func (in ManagedResource) ResourceKey() string {
-	group := in.GroupVersionKind().Group
-	kind := in.GroupVersionKind().Kind
+	gv, kind := in.GroupVersionKind().ToAPIVersionAndKind()
 	cluster := in.Cluster
 	if cluster == "" {
 		cluster = velatypes.ClusterLocalName
 	}
-	return strings.Join([]string{group, kind, cluster, in.Namespace, in.Name}, "/")
+	return strings.Join([]string{gv, kind, cluster, in.Namespace, in.Name}, "/")
 }
 
 // ComponentKey computes the key for the component which managed resource belongs to
@@ -218,9 +215,8 @@ func (in *ResourceTracker) ContainsManagedResource(rsc client.Object) bool {
 }
 
 // AddManagedResource add object to managed resources, if exists, update
-func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool, skipGC bool, creator common.ResourceCreatorRole) (updated bool) {
+func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool, creator common.ResourceCreatorRole) (updated bool) {
 	mr := newManagedResourceFromResource(rsc)
-	mr.SkipGC = skipGC
 	if !metaOnly {
 		mr.Data = &runtime.RawExtension{Object: rsc}
 	}
