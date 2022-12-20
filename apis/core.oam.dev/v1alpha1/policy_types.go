@@ -16,8 +16,6 @@ limitations under the License.
 
 package v1alpha1
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 const (
 	// TopologyPolicyType refers to the type of topology policy
 	TopologyPolicyType = "topology"
@@ -25,8 +23,8 @@ const (
 	OverridePolicyType = "override"
 	// DebugPolicyType refers to the type of debug policy
 	DebugPolicyType = "debug"
-	// SharedResourcePolicyType refers to the type of shared resource policy
-	SharedResourcePolicyType = "shared-resource"
+	// ReplicationPolicyType refers to the type of replication policy
+	ReplicationPolicyType = "replication"
 )
 
 // TopologyPolicySpec defines the spec of topology policy
@@ -47,6 +45,10 @@ type Placement struct {
 	// Exclusive to "clusters"
 	ClusterLabelSelector map[string]string `json:"clusterLabelSelector,omitempty"`
 
+	// AllowEmpty ignore empty cluster error when no cluster returned for label
+	// selector
+	AllowEmpty bool `json:"allowEmpty,omitempty"`
+
 	// DeprecatedClusterSelector is a depreciated alias for ClusterLabelSelector.
 	// Deprecated: Use clusterLabelSelector instead.
 	DeprecatedClusterSelector map[string]string `json:"clusterSelector,omitempty"`
@@ -58,22 +60,10 @@ type OverridePolicySpec struct {
 	Selector   []string            `json:"selector,omitempty"`
 }
 
-// SharedResourcePolicySpec defines the spec of shared-resource policy
-type SharedResourcePolicySpec struct {
-	Rules []SharedResourcePolicyRule `json:"rules"`
-}
-
-// SharedResourcePolicyRule defines the rule for sharing resources
-type SharedResourcePolicyRule struct {
-	Selector ResourcePolicyRuleSelector `json:"selector"`
-}
-
-// FindStrategy return if the target resource should be shared
-func (in SharedResourcePolicySpec) FindStrategy(manifest *unstructured.Unstructured) bool {
-	for _, rule := range in.Rules {
-		if rule.Selector.Match(manifest) {
-			return true
-		}
-	}
-	return false
+// ReplicationPolicySpec defines the spec of replication policy
+// Override policy should be used together with replication policy to select the deployment target components
+type ReplicationPolicySpec struct {
+	Keys []string `json:"keys,omitempty"`
+	// Selector is the subset of selected components which will be replicated.
+	Selector []string `json:"selector,omitempty"`
 }
