@@ -21,19 +21,21 @@ import (
 	"reflect"
 	"strings"
 
-	errors2 "github.com/pkg/errors"
-	v1 "k8s.io/api/core/v1"
+	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/kubevela/pkg/util/compression"
+
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	"github.com/oam-dev/kubevela-core-api/apis/interfaces"
 	velatypes "github.com/oam-dev/kubevela-core-api/apis/types"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam"
-	"github.com/oam-dev/kubevela-core-api/pkg/utils/errors"
+	velaerr "github.com/oam-dev/kubevela-core-api/pkg/utils/errors"
 )
 
 // +kubebuilder:object:root=true
@@ -69,9 +71,60 @@ const (
 
 // ResourceTrackerSpec define the spec of resourceTracker
 type ResourceTrackerSpec struct {
-	Type                  ResourceTrackerType `json:"type,omitempty"`
-	ApplicationGeneration int64               `json:"applicationGeneration"`
-	ManagedResources      []ManagedResource   `json:"managedResources,omitempty"`
+	Type                  ResourceTrackerType        `json:"type,omitempty"`
+	ApplicationGeneration int64                      `json:"applicationGeneration"`
+	ManagedResources      []ManagedResource          `json:"managedResources,omitempty"`
+	Compression           ResourceTrackerCompression `json:"compression,omitempty"`
+}
+
+// ResourceTrackerCompression represents the compressed components in ResourceTracker.
+type ResourceTrackerCompression struct {
+	compression.CompressedText `json:",inline"`
+}
+
+// MarshalJSON will encode ResourceTrackerSpec according to the compression type. If type specified,
+// it will encode data to compression data.
+// Note: this is not the standard json Marshal process but re-use the framework function.
+func (in *ResourceTrackerSpec) MarshalJSON() ([]byte, error) {
+	type Alias ResourceTrackerSpec
+	tmp := &struct{ *Alias }{}
+
+	if in.Compression.Type == compression.Uncompressed {
+		tmp.Alias = (*Alias)(in)
+	} else {
+		cpy := in.DeepCopy()
+		cpy.ManagedResources = nil
+		err := cpy.Compression.EncodeFrom(in.ManagedResources)
+		if err != nil {
+			return nil, err
+		}
+		tmp.Alias = (*Alias)(cpy)
+	}
+
+	return json.Marshal(tmp.Alias)
+}
+
+// UnmarshalJSON will decode ResourceTrackerSpec according to the compression type. If type specified,
+// it will decode data from compression data.
+// Note: this is not the standard json Unmarshal process but re-use the framework function.
+func (in *ResourceTrackerSpec) UnmarshalJSON(src []byte) error {
+	type Alias ResourceTrackerSpec
+	tmp := &struct{ *Alias }{}
+	if err := json.Unmarshal(src, tmp); err != nil {
+		return err
+	}
+
+	if tmp.Compression.Type != compression.Uncompressed {
+		tmp.ManagedResources = []ManagedResource{}
+		err := tmp.Compression.DecodeTo(&tmp.ManagedResources)
+		if err != nil {
+			return err
+		}
+		tmp.Compression.Clean()
+	}
+
+	(*ResourceTrackerSpec)(tmp.Alias).DeepCopyInto(in)
+	return nil
 }
 
 // ManagedResource define the resource to be managed by ResourceTracker
@@ -82,6 +135,8 @@ type ManagedResource struct {
 	Data *runtime.RawExtension `json:"raw,omitempty"`
 	// Deleted marks the resource to be deleted
 	Deleted bool `json:"deleted,omitempty"`
+	// SkipGC marks the resource to skip gc
+	SkipGC bool `json:"skipGC,omitempty"`
 }
 
 // Equal check if two managed resource equals
@@ -121,12 +176,13 @@ func (in ManagedResource) NamespacedName() types.NamespacedName {
 
 // ResourceKey computes the key for managed resource, resources with the same key points to the same resource
 func (in ManagedResource) ResourceKey() string {
-	gv, kind := in.GroupVersionKind().ToAPIVersionAndKind()
+	group := in.GroupVersionKind().Group
+	kind := in.GroupVersionKind().Kind
 	cluster := in.Cluster
 	if cluster == "" {
 		cluster = velatypes.ClusterLocalName
 	}
-	return strings.Join([]string{gv, kind, cluster, in.Namespace, in.Name}, "/")
+	return strings.Join([]string{group, kind, cluster, in.Namespace, in.Name}, "/")
 }
 
 // ComponentKey computes the key for the component which managed resource belongs to
@@ -137,7 +193,7 @@ func (in ManagedResource) ComponentKey() string {
 // UnmarshalTo unmarshal ManagedResource into target object
 func (in ManagedResource) UnmarshalTo(obj interface{}) error {
 	if in.Data == nil || in.Data.Raw == nil {
-		return errors.ManagedResourceHasNoDataError{}
+		return velaerr.ManagedResourceHasNoDataError{}
 	}
 	return json.Unmarshal(in.Data.Raw, obj)
 }
@@ -158,7 +214,7 @@ func (in ManagedResource) ToUnstructured() *unstructured.Unstructured {
 func (in ManagedResource) ToUnstructuredWithData() (*unstructured.Unstructured, error) {
 	obj := in.ToUnstructured()
 	if err := in.UnmarshalTo(obj); err != nil {
-		if errors2.Is(err, errors.ManagedResourceHasNoDataError{}) {
+		if errors.Is(err, velaerr.ManagedResourceHasNoDataError{}) {
 			return nil, err
 		}
 	}
@@ -195,7 +251,7 @@ func newManagedResourceFromResource(rsc client.Object) ManagedResource {
 	gvk := rsc.GetObjectKind().GroupVersionKind()
 	return ManagedResource{
 		ClusterObjectReference: common.ClusterObjectReference{
-			ObjectReference: v1.ObjectReference{
+			ObjectReference: corev1.ObjectReference{
 				APIVersion: gvk.GroupVersion().String(),
 				Kind:       gvk.Kind,
 				Name:       rsc.GetName(),
@@ -215,8 +271,9 @@ func (in *ResourceTracker) ContainsManagedResource(rsc client.Object) bool {
 }
 
 // AddManagedResource add object to managed resources, if exists, update
-func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool, creator common.ResourceCreatorRole) (updated bool) {
+func (in *ResourceTracker) AddManagedResource(rsc client.Object, metaOnly bool, skipGC bool, creator string) (updated bool) {
 	mr := newManagedResourceFromResource(rsc)
+	mr.SkipGC = skipGC
 	if !metaOnly {
 		mr.Data = &runtime.RawExtension{Object: rsc}
 	}
@@ -242,7 +299,7 @@ func (in *ResourceTracker) DeleteManagedResource(rsc client.Object, remove bool)
 	gvk := rsc.GetObjectKind().GroupVersionKind()
 	mr := ManagedResource{
 		ClusterObjectReference: common.ClusterObjectReference{
-			ObjectReference: v1.ObjectReference{
+			ObjectReference: corev1.ObjectReference{
 				APIVersion: gvk.GroupVersion().String(),
 				Kind:       gvk.Kind,
 				Name:       rsc.GetName(),
@@ -285,7 +342,7 @@ func (in *ResourceTracker) addClusterObjectReference(ref common.ClusterObjectRef
 // Deprecated
 func (in *ResourceTracker) AddTrackedResource(rsc interfaces.TrackableResource) bool {
 	return in.addClusterObjectReference(common.ClusterObjectReference{
-		ObjectReference: v1.ObjectReference{
+		ObjectReference: corev1.ObjectReference{
 			APIVersion: rsc.GetAPIVersion(),
 			Kind:       rsc.GetKind(),
 			Name:       rsc.GetName(),

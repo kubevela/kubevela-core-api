@@ -48,6 +48,8 @@ var DefaultKubeVelaNS = "vela-system"
 const (
 	// AnnoDefinitionDescription is the annotation which describe what is the capability used for in a WorkloadDefinition/TraitDefinition Object
 	AnnoDefinitionDescription = "definition.oam.dev/description"
+	// AnnoDefinitionExampleURL is the annotation which describe url of usage examples of the capability, it will be loaded in documentation generate.
+	AnnoDefinitionExampleURL = "definition.oam.dev/example-url"
 	// AnnoDefinitionAlias is the annotation for definition alias
 	AnnoDefinitionAlias = "definition.oam.dev/alias"
 	// AnnoDefinitionIcon is the annotation which describe the icon url
@@ -62,6 +64,8 @@ const (
 	LabelDefinitionDeprecated = "custom.definition.oam.dev/deprecated"
 	// LabelDefinitionHidden is the label which describe whether the capability is hidden by UI
 	LabelDefinitionHidden = "custom.definition.oam.dev/ui-hidden"
+	// LabelDefinitionScope is the label which describe whether the capability's scope
+	LabelDefinitionScope = "custom.definition.oam.dev/scope"
 	// LabelNodeRoleGateway gateway role of node
 	LabelNodeRoleGateway = "node-role.kubernetes.io/gateway"
 	// LabelNodeRoleWorker worker role of node
@@ -70,9 +74,11 @@ const (
 	AnnoIngressControllerHTTPSPort = "ingress.controller/https-port"
 	// AnnoIngressControllerHTTPPort define ingress controller listen port for http
 	AnnoIngressControllerHTTPPort = "ingress.controller/http-port"
-	// LabelConfigType is the label for config type
+	// AnnoIngressControllerHost define ingress controller externally host
+	AnnoIngressControllerHost = "ingress.controller/host"
+	// LabelConfigType is the label marked as the template that generated the config.
 	LabelConfigType = "config.oam.dev/type"
-	// LabelConfigCatalog is the label for config catalog
+	// LabelConfigCatalog is the label marked as the secret generated from the config.
 	LabelConfigCatalog = "config.oam.dev/catalog"
 	// LabelConfigSubType is the sub-type for a config type
 	LabelConfigSubType = "config.oam.dev/sub-type"
@@ -82,10 +88,18 @@ const (
 	LabelConfigSyncToMultiCluster = "config.oam.dev/multi-cluster"
 	// LabelConfigIdentifier is the label for config identifier
 	LabelConfigIdentifier = "config.oam.dev/identifier"
+	// LabelConfigScope is the label for config scope
+	LabelConfigScope = "config.oam.dev/scope"
+	// AnnotationConfigSensitive is the annotation for the sensitization
+	AnnotationConfigSensitive = "config.oam.dev/sensitive"
+	// AnnotationConfigTemplateNamespace is the annotation for the template namespace
+	AnnotationConfigTemplateNamespace = "config.oam.dev/template-namespace"
 	// AnnotationConfigDescription is the annotation for config description
 	AnnotationConfigDescription = "config.oam.dev/description"
 	// AnnotationConfigAlias is the annotation for config alias
 	AnnotationConfigAlias = "config.oam.dev/alias"
+	// AnnotationConfigDistributionSpec is the annotation key of the application that distributes the configs
+	AnnotationConfigDistributionSpec = "config.oam.dev/distribution-spec"
 )
 
 const (
@@ -102,6 +116,7 @@ type Config map[string]string
 type EnvMeta struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+	Labels    string `json:"labels"`
 	Current   string `json:"current"`
 }
 
@@ -151,11 +166,13 @@ const (
 	// TerraformProvider is the config type for terraform provider
 	TerraformProvider = "terraform-provider"
 	// DexConnector is the config type for dex connector
-	DexConnector = "config-dex-connector"
+	DexConnector = "dex-connector"
 	// ImageRegistry is the config type for image registry
-	ImageRegistry = "config-image-registry"
+	ImageRegistry = "image-registry"
 	// HelmRepository is the config type for Helm chart repository
-	HelmRepository = "config-helm-repository"
+	HelmRepository = "helm-repository"
+	// CatalogConfigDistribution is the catalog type
+	CatalogConfigDistribution = "config-distribution"
 )
 
 const (

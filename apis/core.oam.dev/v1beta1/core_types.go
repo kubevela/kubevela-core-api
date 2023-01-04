@@ -120,7 +120,7 @@ type TraitDefinitionSpec struct {
 	PodDisruptive bool `json:"podDisruptive,omitempty"`
 
 	// AppliesToWorkloads specifies the list of workload kinds this trait
-	// applies to. Workload kinds are specified in kind.group/version format,
+	// applies to. Workload kinds are specified in resource.group/version format,
 	// e.g. server.core.oam.dev/v1alpha2. Traits that omit this field apply to
 	// all workload kinds.
 	// +optional
@@ -138,7 +138,8 @@ type TraitDefinitionSpec struct {
 	// +optional
 	ConflictsWith []string `json:"conflictsWith,omitempty"`
 
-	// Schematic defines the data format and template of the encapsulation of the trait
+	// Schematic defines the data format and template of the encapsulation of the trait.
+	// Only CUE and Kube schematic are supported for now.
 	// +optional
 	Schematic *common.Schematic `json:"schematic,omitempty"`
 
@@ -154,13 +155,31 @@ type TraitDefinitionSpec struct {
 	// ManageWorkload defines the trait would be responsible for creating the workload
 	// +optional
 	ManageWorkload bool `json:"manageWorkload,omitempty"`
-	// SkipRevisionAffect defines the update this trait will not generate a new application Revision
-	// +optional
-	SkipRevisionAffect bool `json:"skipRevisionAffect,omitempty"`
 	// ControlPlaneOnly defines which cluster is dispatched to
 	// +optional
 	ControlPlaneOnly bool `json:"controlPlaneOnly,omitempty"`
+
+	// Stage defines the stage information to which this trait resource processing belongs.
+	// Currently, PreDispatch and PostDispatch are provided, which are used to control resource
+	// pre-process and post-process respectively.
+	// +optional
+	Stage StageType `json:"stage,omitempty"`
 }
+
+// StageType describes how the manifests should be dispatched.
+// Only one of the following stage types may be specified.
+// If none of the following types is specified, the default one
+// is DefaultDispatch.
+type StageType string
+
+const (
+	// PreDispatch means that pre dispatch for manifests
+	PreDispatch StageType = "PreDispatch"
+	// DefaultDispatch means that default dispatch for manifests
+	DefaultDispatch StageType = "DefaultDispatch"
+	// PostDispatch means that post dispatch for manifests
+	PostDispatch StageType = "PostDispatch"
+)
 
 // TraitDefinitionStatus is the status of TraitDefinition
 type TraitDefinitionStatus struct {

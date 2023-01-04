@@ -23,7 +23,16 @@ import (
 const (
 	// ApplyOncePolicyType refers to the type of configuration drift policy
 	ApplyOncePolicyType = "apply-once"
+	// ApplyOnceStrategyOnAppUpdate policy takes effect on application updating
+	ApplyOnceStrategyOnAppUpdate ApplyOnceAffectStrategy = "onUpdate"
+	// ApplyOnceStrategyOnAppStateKeep policy takes effect on application state keep
+	ApplyOnceStrategyOnAppStateKeep ApplyOnceAffectStrategy = "onStateKeep"
+	// ApplyOnceStrategyAlways policy takes effect always
+	ApplyOnceStrategyAlways ApplyOnceAffectStrategy = "always"
 )
+
+// ApplyOnceAffectStrategy is a string that mark the policy effective stage
+type ApplyOnceAffectStrategy string
 
 // ApplyOncePolicySpec defines the spec of preventing configuration drift
 type ApplyOncePolicySpec struct {
@@ -45,23 +54,23 @@ type ApplyOnceStrategy struct {
 	// Path the specified path that allow configuration drift
 	// like 'spec.template.spec.containers[0].resources' and '*' means the whole target allow configuration drift
 	Path []string `json:"path"`
+	// ApplyOnceAffectStrategy Decide when the strategy will take effect
+	// like affect:onUpdate/onStateKeep/always
+	ApplyOnceAffectStrategy ApplyOnceAffectStrategy `json:"affect"`
+}
+
+// Type the type name of the policy
+func (in *ApplyOncePolicySpec) Type() string {
+	return ApplyOncePolicyType
 }
 
 // FindStrategy find apply-once strategy for target resource
-func (in ApplyOncePolicySpec) FindStrategy(manifest *unstructured.Unstructured) *ApplyOnceStrategy {
+func (in *ApplyOncePolicySpec) FindStrategy(manifest *unstructured.Unstructured) *ApplyOnceStrategy {
 	if !in.Enable {
 		return nil
 	}
 	for _, rule := range in.Rules {
-		match := func(src []string, val string) (found bool) {
-			for _, _val := range src {
-				found = found || _val == val
-			}
-			return val != "" && found
-		}
-		if (match(rule.Selector.CompNames, manifest.GetName()) && match(rule.Selector.ResourceTypes, manifest.GetKind())) ||
-			(rule.Selector.CompNames == nil && match(rule.Selector.ResourceTypes, manifest.GetKind()) ||
-				(rule.Selector.ResourceTypes == nil && match(rule.Selector.CompNames, manifest.GetName()))) {
+		if rule.Selector.Match(manifest) {
 			return rule.Strategy
 		}
 	}

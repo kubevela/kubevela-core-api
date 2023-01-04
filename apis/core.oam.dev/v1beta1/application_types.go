@@ -23,6 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	workflowv1alpha1 "github.com/kubevela/workflow/api/v1alpha1"
+
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 )
@@ -49,13 +51,11 @@ type AppPolicy struct {
 	Properties *runtime.RawExtension `json:"properties,omitempty"`
 }
 
-// WorkflowStep defines how to execute a workflow step.
-type WorkflowStep common.WorkflowStep
-
 // Workflow defines workflow steps and other attributes
 type Workflow struct {
-	Ref   string         `json:"ref,omitempty"`
-	Steps []WorkflowStep `json:"steps,omitempty"`
+	Ref   string                                `json:"ref,omitempty"`
+	Mode  *workflowv1alpha1.WorkflowExecuteMode `json:"mode,omitempty"`
+	Steps []workflowv1alpha1.WorkflowStep       `json:"steps,omitempty"`
 }
 
 // ApplicationSpec is the spec of Application
