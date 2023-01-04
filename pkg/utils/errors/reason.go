@@ -16,9 +16,7 @@ limitations under the License.
 
 package errors
 
-import (
-	"strings"
-)
+import "strings"
 
 const (
 	// LabelConflict defines the conflict label error string
@@ -34,9 +32,4 @@ func IsLabelConflict(err error) bool {
 		return true
 	}
 	return false
-}
-
-// IsCuePathNotFound checks if the error is cue path not found error
-func IsCuePathNotFound(err error) bool {
-	return strings.Contains(err.Error(), "failed to lookup value") && strings.Contains(err.Error(), "not exist")
 }

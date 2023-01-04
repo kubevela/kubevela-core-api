@@ -18,6 +18,8 @@ package v1alpha1
 
 import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 )
 
 const (
@@ -53,6 +55,19 @@ type GarbageCollectPolicyRule struct {
 	Strategy GarbageCollectStrategy     `json:"strategy"`
 }
 
+// ResourcePolicyRuleSelector select the targets of the rule
+// 1) for GarbageCollectPolicyRule
+// if both traitTypes, oamTypes and componentTypes are specified, combination logic is OR
+// if one resource is specified with conflict strategies, strategy as component go first.
+// 2) for ApplyOncePolicyRule only CompNames and ResourceTypes are used
+type ResourcePolicyRuleSelector struct {
+	CompNames        []string `json:"componentNames"`
+	CompTypes        []string `json:"componentTypes"`
+	OAMResourceTypes []string `json:"oamTypes"`
+	TraitTypes       []string `json:"traitTypes"`
+	ResourceTypes    []string `json:"resourceTypes"`
+}
+
 // GarbageCollectStrategy the strategy for target resource to recycle
 type GarbageCollectStrategy string
 
@@ -66,15 +81,26 @@ const (
 	GarbageCollectStrategyOnAppUpdate GarbageCollectStrategy = "onAppUpdate"
 )
 
-// Type the type name of the policy
-func (in *GarbageCollectPolicySpec) Type() string {
-	return GarbageCollectPolicyType
-}
-
 // FindStrategy find gc strategy for target resource
-func (in *GarbageCollectPolicySpec) FindStrategy(manifest *unstructured.Unstructured) *GarbageCollectStrategy {
+func (in GarbageCollectPolicySpec) FindStrategy(manifest *unstructured.Unstructured) *GarbageCollectStrategy {
 	for _, rule := range in.Rules {
-		if rule.Selector.Match(manifest) {
+		var compName, compType, oamType, traitType string
+		if labels := manifest.GetLabels(); labels != nil {
+			compName = labels[oam.LabelAppComponent]
+			compType = labels[oam.WorkloadTypeLabel]
+			oamType = labels[oam.LabelOAMResourceType]
+			traitType = labels[oam.TraitTypeLabel]
+		}
+		match := func(src []string, val string) (found bool) {
+			for _, _val := range src {
+				found = found || _val == val
+			}
+			return val != "" && found
+		}
+		if match(rule.Selector.CompNames, compName) ||
+			match(rule.Selector.CompTypes, compType) ||
+			match(rule.Selector.OAMResourceTypes, oamType) ||
+			match(rule.Selector.TraitTypes, traitType) {
 			return &rule.Strategy
 		}
 	}

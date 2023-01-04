@@ -46,7 +46,6 @@ import (
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/condition"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha2"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	types2 "github.com/oam-dev/kubevela-core-api/apis/types"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam/discoverymapper"
 )
@@ -281,11 +280,11 @@ func FetchWorkloadDefinition(ctx context.Context, r client.Reader, dm discoverym
 }
 
 // GetDefinitionNamespaceWithCtx will get namespace from context, it will try get `AppDefinitionNamespace` key, if not found,
-// will use default system level namespace defined in `systemvar.SystemDefinitionNamespace`
+// will use default system level namespace defined in `systemvar.SystemDefinitonNamespace`
 func GetDefinitionNamespaceWithCtx(ctx context.Context) string {
 	var appNs string
 	if app := ctx.Value(AppDefinitionNamespace); app == nil {
-		appNs = oam.SystemDefinitionNamespace
+		appNs = oam.SystemDefinitonNamespace
 	} else {
 		appNs = app.(string)
 	}
@@ -298,7 +297,7 @@ func GetDefinitionNamespaceWithCtx(ctx context.Context) string {
 func SetNamespaceInCtx(ctx context.Context, namespace string) context.Context {
 	if namespace == "" {
 		// compatible with some webhook handlers that maybe receive empty string as app namespace which means `default` namespace
-		namespace = types2.DefaultAppNamespace
+		namespace = "default"
 	}
 	ctx = context.WithValue(ctx, AppDefinitionNamespace, namespace)
 	return ctx
@@ -309,7 +308,7 @@ func GetDefinition(ctx context.Context, cli client.Reader, definition client.Obj
 	appNs := GetDefinitionNamespaceWithCtx(ctx)
 	if err := cli.Get(ctx, types.NamespacedName{Name: definitionName, Namespace: appNs}, definition); err != nil {
 		if apierrors.IsNotFound(err) {
-			if err = cli.Get(ctx, types.NamespacedName{Name: definitionName, Namespace: oam.SystemDefinitionNamespace}, definition); err != nil {
+			if err = cli.Get(ctx, types.NamespacedName{Name: definitionName, Namespace: oam.SystemDefinitonNamespace}, definition); err != nil {
 				if apierrors.IsNotFound(err) {
 					// compatibility code for old clusters those definition crd is cluster scope
 					var newErr error

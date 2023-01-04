@@ -17,10 +17,6 @@
 package v1beta1
 
 import (
-	"encoding/json"
-
-	"github.com/kubevela/pkg/util/compression"
-	workflowv1alpha1 "github.com/kubevela/workflow/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
@@ -31,16 +27,6 @@ import (
 
 // ApplicationRevisionSpec is the spec of ApplicationRevision
 type ApplicationRevisionSpec struct {
-	// ApplicationRevisionCompressibleFields represents all the fields that can be compressed.
-	ApplicationRevisionCompressibleFields `json:",inline"`
-
-	// Compression represents the compressed components in apprev in base64 (if compression is enabled).
-	Compression ApplicationRevisionCompression `json:"compression,omitempty"`
-}
-
-// ApplicationRevisionCompressibleFields represents all the fields that can be compressed.
-// So we can better organize them and compress only the compressible fields.
-type ApplicationRevisionCompressibleFields struct {
 	// Application records the snapshot of the created/modified Application
 	Application Application `json:"application"`
 
@@ -69,64 +55,11 @@ type ApplicationRevisionCompressibleFields struct {
 	Policies map[string]v1alpha1.Policy `json:"policies,omitempty"`
 
 	// Workflow records the external workflow
-	Workflow *workflowv1alpha1.Workflow `json:"workflow,omitempty"`
+	Workflow *v1alpha1.Workflow `json:"workflow,omitempty"`
 
 	// ReferredObjects records the referred objects used in the ref-object typed components
 	// +kubebuilder:pruning:PreserveUnknownFields
 	ReferredObjects []common.ReferredObject `json:"referredObjects,omitempty"`
-}
-
-// ApplicationRevisionCompression represents the compressed components in apprev in base64.
-type ApplicationRevisionCompression struct {
-	compression.CompressedText `json:",inline"`
-}
-
-// MarshalJSON serves the same purpose as the one in ResourceTrackerSpec.
-func (apprev *ApplicationRevisionSpec) MarshalJSON() ([]byte, error) {
-	type Alias ApplicationRevisionSpec
-	tmp := &struct {
-		*Alias
-	}{}
-
-	if apprev.Compression.Type == compression.Uncompressed {
-		tmp.Alias = (*Alias)(apprev)
-	} else {
-		cpy := apprev.DeepCopy()
-		err := cpy.Compression.EncodeFrom(cpy.ApplicationRevisionCompressibleFields)
-		cpy.ApplicationRevisionCompressibleFields = ApplicationRevisionCompressibleFields{
-			// Application needs to have components.
-			Application: Application{Spec: ApplicationSpec{Components: []common.ApplicationComponent{}}},
-		}
-		if err != nil {
-			return nil, err
-		}
-		tmp.Alias = (*Alias)(cpy)
-	}
-
-	return json.Marshal(tmp.Alias)
-}
-
-// UnmarshalJSON serves the same purpose as the one in ResourceTrackerSpec.
-func (apprev *ApplicationRevisionSpec) UnmarshalJSON(data []byte) error {
-	type Alias ApplicationRevisionSpec
-	tmp := &struct {
-		*Alias
-	}{}
-
-	if err := json.Unmarshal(data, tmp); err != nil {
-		return err
-	}
-
-	if tmp.Compression.Type != compression.Uncompressed {
-		err := tmp.Compression.DecodeTo(&tmp.ApplicationRevisionCompressibleFields)
-		if err != nil {
-			return err
-		}
-		tmp.Compression.Clean()
-	}
-
-	(*ApplicationRevisionSpec)(tmp.Alias).DeepCopyInto(apprev)
-	return nil
 }
 
 // ApplicationRevisionStatus is the status of ApplicationRevision
