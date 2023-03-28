@@ -142,17 +142,9 @@ func (in *ApplicationRevisionCompressibleFields) DeepCopyInto(out *ApplicationRe
 	in.Application.DeepCopyInto(&out.Application)
 	if in.ComponentDefinitions != nil {
 		in, out := &in.ComponentDefinitions, &out.ComponentDefinitions
-		*out = make(map[string]*ComponentDefinition, len(*in))
+		*out = make(map[string]ComponentDefinition, len(*in))
 		for key, val := range *in {
-			var outVal *ComponentDefinition
-			if val == nil {
-				(*out)[key] = nil
-			} else {
-				in, out := &val, &outVal
-				*out = new(ComponentDefinition)
-				(*in).DeepCopyInto(*out)
-			}
-			(*out)[key] = outVal
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.WorkloadDefinitions != nil {
@@ -164,17 +156,9 @@ func (in *ApplicationRevisionCompressibleFields) DeepCopyInto(out *ApplicationRe
 	}
 	if in.TraitDefinitions != nil {
 		in, out := &in.TraitDefinitions, &out.TraitDefinitions
-		*out = make(map[string]*TraitDefinition, len(*in))
+		*out = make(map[string]TraitDefinition, len(*in))
 		for key, val := range *in {
-			var outVal *TraitDefinition
-			if val == nil {
-				(*out)[key] = nil
-			} else {
-				in, out := &val, &outVal
-				*out = new(TraitDefinition)
-				(*in).DeepCopyInto(*out)
-			}
-			(*out)[key] = outVal
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.ScopeDefinitions != nil {
@@ -193,17 +177,9 @@ func (in *ApplicationRevisionCompressibleFields) DeepCopyInto(out *ApplicationRe
 	}
 	if in.WorkflowStepDefinitions != nil {
 		in, out := &in.WorkflowStepDefinitions, &out.WorkflowStepDefinitions
-		*out = make(map[string]*WorkflowStepDefinition, len(*in))
+		*out = make(map[string]WorkflowStepDefinition, len(*in))
 		for key, val := range *in {
-			var outVal *WorkflowStepDefinition
-			if val == nil {
-				(*out)[key] = nil
-			} else {
-				in, out := &val, &outVal
-				*out = new(WorkflowStepDefinition)
-				(*in).DeepCopyInto(*out)
-			}
-			(*out)[key] = outVal
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.ScopeGVK != nil {
