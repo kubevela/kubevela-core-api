@@ -37,6 +37,9 @@ const (
 )
 
 var (
+	// AnnotationClusterAlias the annotation key for cluster alias
+	AnnotationClusterAlias = config.MetaApiGroupName + "/cluster-alias"
+
 	// AnnotationClusterVersion the annotation key for cluster version
 	AnnotationClusterVersion = config.MetaApiGroupName + "/cluster-version"
 )
