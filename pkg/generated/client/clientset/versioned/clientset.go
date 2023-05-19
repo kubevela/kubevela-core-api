@@ -32,7 +32,8 @@ type Interface interface {
 	CoreV1beta1() corev1beta1.CoreV1beta1Interface
 }
 
-// Clientset contains the clients for groups.
+// Clientset contains the clients for groups. Each group has exactly one
+// version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
 	coreV1beta1 *corev1beta1.CoreV1beta1Client

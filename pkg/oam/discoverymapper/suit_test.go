@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	crdv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -33,6 +33,7 @@ import (
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -47,13 +48,15 @@ var scheme = runtime.NewScheme()
 func TestMapper(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecs(t, "Test Mapper Suite")
+	RunSpecsWithDefaultAndCustomReporters(t,
+		"Test Mapper Suite",
+		[]Reporter{printer.NewlineReporter{}})
 }
 
-var _ = BeforeSuite(func() {
+var _ = BeforeSuite(func(done Done) {
 	By("Bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		UseExistingCluster:       pointer.Bool(false),
+		UseExistingCluster:       pointer.BoolPtr(false),
 		ControlPlaneStartTimeout: time.Minute,
 		ControlPlaneStopTimeout:  time.Minute,
 	}
@@ -68,7 +71,9 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
-})
+
+	close(done)
+}, 60)
 
 var _ = AfterSuite(func() {
 	By("Tearing down the test environment")

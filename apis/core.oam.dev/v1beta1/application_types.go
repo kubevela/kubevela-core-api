@@ -44,9 +44,8 @@ const (
 // AppPolicy defines a global policy for all components in the app.
 type AppPolicy struct {
 	// Name is the unique name of the policy.
-	// +optional
-	Name string `json:"name,omitempty"`
-	// Type is the type of the policy
+	Name string `json:"name"`
+
 	Type string `json:"type"`
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Properties *runtime.RawExtension `json:"properties,omitempty"`

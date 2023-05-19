@@ -11,7 +11,7 @@ require (
 	github.com/kubevela/workflow v0.3.5
 	github.com/oam-dev/cluster-gateway v1.7.0-alpha.1
 	github.com/oam-dev/terraform-controller v0.7.0
-	github.com/onsi/ginkgo/v2 v2.1.6
+	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
