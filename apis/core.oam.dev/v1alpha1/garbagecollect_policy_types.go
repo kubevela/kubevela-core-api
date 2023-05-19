@@ -27,9 +27,16 @@ const (
 
 // GarbageCollectPolicySpec defines the spec of configuration drift
 type GarbageCollectPolicySpec struct {
+	// ApplicationRevisionLimit if set, this application will use this number for application revision instead of
+	// the global configuration
+	ApplicationRevisionLimit *int `json:"applicationRevisionLimit,omitempty"`
+
 	// KeepLegacyResource if is set, outdated versioned resourcetracker will not be recycled automatically
 	// outdated resources will be kept until resourcetracker be deleted manually
 	KeepLegacyResource bool `json:"keepLegacyResource,omitempty"`
+
+	// ContinueOnFailure if is set, continue to execute gc when the workflow fails, by default gc will be executed only after the workflow succeeds
+	ContinueOnFailure bool `json:"continueOnFailure,omitempty"`
 
 	// Order defines the order of garbage collect
 	Order GarbageCollectOrder `json:"order,omitempty"`
