@@ -12,7 +12,6 @@ import (
 	core_oam_dev "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	core_v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	kubevelaapistandard "github.com/oam-dev/kubevela-core-api/apis/standard.oam.dev/v1alpha1"
 	"github.com/oam-dev/kubevela-core-api/pkg/oam/util"
 )
 
@@ -20,7 +19,6 @@ var scheme = runtime.NewScheme()
 
 func init() {
 	_ = core_oam_dev.AddToScheme(scheme)
-	_ = kubevelaapistandard.AddToScheme(scheme)
 }
 
 func main() {
