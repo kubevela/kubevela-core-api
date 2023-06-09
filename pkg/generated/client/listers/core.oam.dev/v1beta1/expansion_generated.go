@@ -65,14 +65,6 @@ type ResourceTrackerListerExpansion interface{}
 // ResourceTrackerNamespaceLister.
 type ResourceTrackerNamespaceListerExpansion interface{}
 
-// ScopeDefinitionListerExpansion allows custom methods to be added to
-// ScopeDefinitionLister.
-type ScopeDefinitionListerExpansion interface{}
-
-// ScopeDefinitionNamespaceListerExpansion allows custom methods to be added to
-// ScopeDefinitionNamespaceLister.
-type ScopeDefinitionNamespaceListerExpansion interface{}
-
 // TraitDefinitionListerExpansion allows custom methods to be added to
 // TraitDefinitionLister.
 type TraitDefinitionListerExpansion interface{}

@@ -33,7 +33,6 @@ type CoreV1beta1Interface interface {
 	DefinitionRevisionsGetter
 	PolicyDefinitionsGetter
 	ResourceTrackersGetter
-	ScopeDefinitionsGetter
 	TraitDefinitionsGetter
 	WorkflowStepDefinitionsGetter
 	WorkloadDefinitionsGetter
@@ -66,10 +65,6 @@ func (c *CoreV1beta1Client) PolicyDefinitions(namespace string) PolicyDefinition
 
 func (c *CoreV1beta1Client) ResourceTrackers(namespace string) ResourceTrackerInterface {
 	return newResourceTrackers(c, namespace)
-}
-
-func (c *CoreV1beta1Client) ScopeDefinitions(namespace string) ScopeDefinitionInterface {
-	return newScopeDefinitions(c, namespace)
 }
 
 func (c *CoreV1beta1Client) TraitDefinitions(namespace string) TraitDefinitionInterface {

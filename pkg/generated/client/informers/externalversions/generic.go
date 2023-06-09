@@ -64,8 +64,6 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().PolicyDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("resourcetrackers"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().ResourceTrackers().Informer()}, nil
-	case v1beta1.SchemeGroupVersion.WithResource("scopedefinitions"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().ScopeDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("traitdefinitions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().TraitDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("workflowstepdefinitions"):

@@ -35,8 +35,6 @@ type Interface interface {
 	PolicyDefinitions() PolicyDefinitionInformer
 	// ResourceTrackers returns a ResourceTrackerInformer.
 	ResourceTrackers() ResourceTrackerInformer
-	// ScopeDefinitions returns a ScopeDefinitionInformer.
-	ScopeDefinitions() ScopeDefinitionInformer
 	// TraitDefinitions returns a TraitDefinitionInformer.
 	TraitDefinitions() TraitDefinitionInformer
 	// WorkflowStepDefinitions returns a WorkflowStepDefinitionInformer.
@@ -84,11 +82,6 @@ func (v *version) PolicyDefinitions() PolicyDefinitionInformer {
 // ResourceTrackers returns a ResourceTrackerInformer.
 func (v *version) ResourceTrackers() ResourceTrackerInformer {
 	return &resourceTrackerInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
-}
-
-// ScopeDefinitions returns a ScopeDefinitionInformer.
-func (v *version) ScopeDefinitions() ScopeDefinitionInformer {
-	return &scopeDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // TraitDefinitions returns a TraitDefinitionInformer.

@@ -51,10 +51,6 @@ func (c *FakeCoreV1beta1) ResourceTrackers(namespace string) v1beta1.ResourceTra
 	return &FakeResourceTrackers{c, namespace}
 }
 
-func (c *FakeCoreV1beta1) ScopeDefinitions(namespace string) v1beta1.ScopeDefinitionInterface {
-	return &FakeScopeDefinitions{c, namespace}
-}
-
 func (c *FakeCoreV1beta1) TraitDefinitions(namespace string) v1beta1.TraitDefinitionInterface {
 	return &FakeTraitDefinitions{c, namespace}
 }
