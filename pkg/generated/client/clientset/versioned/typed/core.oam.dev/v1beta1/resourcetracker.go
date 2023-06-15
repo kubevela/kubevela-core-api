@@ -39,7 +39,6 @@ type ResourceTrackersGetter interface {
 type ResourceTrackerInterface interface {
 	Create(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.CreateOptions) (*v1beta1.ResourceTracker, error)
 	Update(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (*v1beta1.ResourceTracker, error)
-	UpdateStatus(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (*v1beta1.ResourceTracker, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
 	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.ResourceTracker, error)
@@ -128,22 +127,6 @@ func (c *resourceTrackers) Update(ctx context.Context, resourceTracker *v1beta1.
 		Namespace(c.ns).
 		Resource("resourcetrackers").
 		Name(resourceTracker.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(resourceTracker).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *resourceTrackers) UpdateStatus(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (result *v1beta1.ResourceTracker, err error) {
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(resourceTracker.Name).
-		SubResource("status").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(resourceTracker).
 		Do(ctx).

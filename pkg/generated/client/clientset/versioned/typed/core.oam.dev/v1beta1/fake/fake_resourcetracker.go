@@ -101,18 +101,6 @@ func (c *FakeResourceTrackers) Update(ctx context.Context, resourceTracker *v1be
 	return obj.(*v1beta1.ResourceTracker), err
 }
 
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeResourceTrackers) UpdateStatus(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (*v1beta1.ResourceTracker, error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(resourcetrackersResource, "status", c.ns, resourceTracker), &v1beta1.ResourceTracker{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.ResourceTracker), err
-}
-
 // Delete takes name of the resourceTracker and deletes it. Returns an error if one occurs.
 func (c *FakeResourceTrackers) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
