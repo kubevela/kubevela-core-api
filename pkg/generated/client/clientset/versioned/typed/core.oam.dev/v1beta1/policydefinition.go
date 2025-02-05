@@ -19,9 +19,12 @@ package v1beta1
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -46,6 +49,8 @@ type PolicyDefinitionInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.PolicyDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PolicyDefinition, err error)
+	Apply(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error)
+	ApplyStatus(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error)
 	PolicyDefinitionExpansion
 }
 
@@ -187,6 +192,62 @@ func (c *policyDefinitions) Patch(ctx context.Context, name string, pt types.Pat
 		Name(name).
 		SubResource(subresources...).
 		VersionedParams(&opts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied policyDefinition.
+func (c *policyDefinitions) Apply(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
+	if policyDefinition == nil {
+		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(policyDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := policyDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
+	}
+	result = &v1beta1.PolicyDefinition{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("policydefinitions").
+		Name(*name).
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *policyDefinitions) ApplyStatus(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
+	if policyDefinition == nil {
+		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(policyDefinition)
+	if err != nil {
+		return nil, err
+	}
+
+	name := policyDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
+	}
+
+	result = &v1beta1.PolicyDefinition{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("policydefinitions").
+		Name(*name).
+		SubResource("status").
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
 		Body(data).
 		Do(ctx).
 		Into(result)

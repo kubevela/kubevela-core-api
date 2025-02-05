@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakePolicyDefinitions struct {
 	ns   string
 }
 
-var policydefinitionsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "policydefinitions"}
+var policydefinitionsResource = v1beta1.SchemeGroupVersion.WithResource("policydefinitions")
 
-var policydefinitionsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "PolicyDefinition"}
+var policydefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("PolicyDefinition")
 
 // Get takes name of the policyDefinition, and returns the corresponding policyDefinition object, and an error if there is any.
 func (c *FakePolicyDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.PolicyDefinition, err error) {
@@ -133,6 +135,51 @@ func (c *FakePolicyDefinitions) DeleteCollection(ctx context.Context, opts v1.De
 func (c *FakePolicyDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PolicyDefinition, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.PolicyDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.PolicyDefinition), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied policyDefinition.
+func (c *FakePolicyDefinitions) Apply(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
+	if policyDefinition == nil {
+		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(policyDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := policyDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.PolicyDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.PolicyDefinition), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakePolicyDefinitions) ApplyStatus(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
+	if policyDefinition == nil {
+		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(policyDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := policyDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.PolicyDefinition{})
 
 	if obj == nil {
 		return nil, err

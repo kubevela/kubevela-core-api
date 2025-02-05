@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeResourceTrackers struct {
 	ns   string
 }
 
-var resourcetrackersResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "resourcetrackers"}
+var resourcetrackersResource = v1beta1.SchemeGroupVersion.WithResource("resourcetrackers")
 
-var resourcetrackersKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "ResourceTracker"}
+var resourcetrackersKind = v1beta1.SchemeGroupVersion.WithKind("ResourceTracker")
 
 // Get takes name of the resourceTracker, and returns the corresponding resourceTracker object, and an error if there is any.
 func (c *FakeResourceTrackers) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ResourceTracker, err error) {
@@ -121,6 +123,28 @@ func (c *FakeResourceTrackers) DeleteCollection(ctx context.Context, opts v1.Del
 func (c *FakeResourceTrackers) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(resourcetrackersResource, c.ns, name, pt, data, subresources...), &v1beta1.ResourceTracker{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.ResourceTracker), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied resourceTracker.
+func (c *FakeResourceTrackers) Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error) {
+	if resourceTracker == nil {
+		return nil, fmt.Errorf("resourceTracker provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(resourceTracker)
+	if err != nil {
+		return nil, err
+	}
+	name := resourceTracker.Name
+	if name == nil {
+		return nil, fmt.Errorf("resourceTracker.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(resourcetrackersResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.ResourceTracker{})
 
 	if obj == nil {
 		return nil, err

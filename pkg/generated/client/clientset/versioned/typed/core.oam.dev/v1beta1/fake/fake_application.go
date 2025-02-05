@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeApplications struct {
 	ns   string
 }
 
-var applicationsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "applications"}
+var applicationsResource = v1beta1.SchemeGroupVersion.WithResource("applications")
 
-var applicationsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "Application"}
+var applicationsKind = v1beta1.SchemeGroupVersion.WithKind("Application")
 
 // Get takes name of the application, and returns the corresponding application object, and an error if there is any.
 func (c *FakeApplications) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.Application, err error) {
@@ -133,6 +135,51 @@ func (c *FakeApplications) DeleteCollection(ctx context.Context, opts v1.DeleteO
 func (c *FakeApplications) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.Application, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, name, pt, data, subresources...), &v1beta1.Application{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.Application), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied application.
+func (c *FakeApplications) Apply(ctx context.Context, application *coreoamdevv1beta1.ApplicationApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.Application, err error) {
+	if application == nil {
+		return nil, fmt.Errorf("application provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(application)
+	if err != nil {
+		return nil, err
+	}
+	name := application.Name
+	if name == nil {
+		return nil, fmt.Errorf("application.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.Application{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.Application), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakeApplications) ApplyStatus(ctx context.Context, application *coreoamdevv1beta1.ApplicationApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.Application, err error) {
+	if application == nil {
+		return nil, fmt.Errorf("application provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(application)
+	if err != nil {
+		return nil, err
+	}
+	name := application.Name
+	if name == nil {
+		return nil, fmt.Errorf("application.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.Application{})
 
 	if obj == nil {
 		return nil, err

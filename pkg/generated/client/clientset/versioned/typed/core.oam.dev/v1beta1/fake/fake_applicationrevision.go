@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeApplicationRevisions struct {
 	ns   string
 }
 
-var applicationrevisionsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "applicationrevisions"}
+var applicationrevisionsResource = v1beta1.SchemeGroupVersion.WithResource("applicationrevisions")
 
-var applicationrevisionsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "ApplicationRevision"}
+var applicationrevisionsKind = v1beta1.SchemeGroupVersion.WithKind("ApplicationRevision")
 
 // Get takes name of the applicationRevision, and returns the corresponding applicationRevision object, and an error if there is any.
 func (c *FakeApplicationRevisions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ApplicationRevision, err error) {
@@ -133,6 +135,51 @@ func (c *FakeApplicationRevisions) DeleteCollection(ctx context.Context, opts v1
 func (c *FakeApplicationRevisions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ApplicationRevision, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, name, pt, data, subresources...), &v1beta1.ApplicationRevision{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.ApplicationRevision), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied applicationRevision.
+func (c *FakeApplicationRevisions) Apply(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ApplicationRevision, err error) {
+	if applicationRevision == nil {
+		return nil, fmt.Errorf("applicationRevision provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(applicationRevision)
+	if err != nil {
+		return nil, err
+	}
+	name := applicationRevision.Name
+	if name == nil {
+		return nil, fmt.Errorf("applicationRevision.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.ApplicationRevision{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.ApplicationRevision), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakeApplicationRevisions) ApplyStatus(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ApplicationRevision, err error) {
+	if applicationRevision == nil {
+		return nil, fmt.Errorf("applicationRevision provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(applicationRevision)
+	if err != nil {
+		return nil, err
+	}
+	name := applicationRevision.Name
+	if name == nil {
+		return nil, fmt.Errorf("applicationRevision.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.ApplicationRevision{})
 
 	if obj == nil {
 		return nil, err

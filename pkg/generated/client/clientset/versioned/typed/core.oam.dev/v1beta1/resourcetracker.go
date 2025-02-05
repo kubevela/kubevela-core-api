@@ -19,9 +19,12 @@ package v1beta1
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -45,6 +48,7 @@ type ResourceTrackerInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ResourceTrackerList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error)
+	Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error)
 	ResourceTrackerExpansion
 }
 
@@ -170,6 +174,32 @@ func (c *resourceTrackers) Patch(ctx context.Context, name string, pt types.Patc
 		Name(name).
 		SubResource(subresources...).
 		VersionedParams(&opts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied resourceTracker.
+func (c *resourceTrackers) Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error) {
+	if resourceTracker == nil {
+		return nil, fmt.Errorf("resourceTracker provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(resourceTracker)
+	if err != nil {
+		return nil, err
+	}
+	name := resourceTracker.Name
+	if name == nil {
+		return nil, fmt.Errorf("resourceTracker.Name must be provided to Apply")
+	}
+	result = &v1beta1.ResourceTracker{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("resourcetrackers").
+		Name(*name).
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
 		Body(data).
 		Do(ctx).
 		Into(result)

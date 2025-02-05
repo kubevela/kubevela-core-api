@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeDefinitionRevisions struct {
 	ns   string
 }
 
-var definitionrevisionsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "definitionrevisions"}
+var definitionrevisionsResource = v1beta1.SchemeGroupVersion.WithResource("definitionrevisions")
 
-var definitionrevisionsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "DefinitionRevision"}
+var definitionrevisionsKind = v1beta1.SchemeGroupVersion.WithKind("DefinitionRevision")
 
 // Get takes name of the definitionRevision, and returns the corresponding definitionRevision object, and an error if there is any.
 func (c *FakeDefinitionRevisions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.DefinitionRevision, err error) {
@@ -121,6 +123,28 @@ func (c *FakeDefinitionRevisions) DeleteCollection(ctx context.Context, opts v1.
 func (c *FakeDefinitionRevisions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.DefinitionRevision, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(definitionrevisionsResource, c.ns, name, pt, data, subresources...), &v1beta1.DefinitionRevision{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.DefinitionRevision), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied definitionRevision.
+func (c *FakeDefinitionRevisions) Apply(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.DefinitionRevision, err error) {
+	if definitionRevision == nil {
+		return nil, fmt.Errorf("definitionRevision provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(definitionRevision)
+	if err != nil {
+		return nil, err
+	}
+	name := definitionRevision.Name
+	if name == nil {
+		return nil, fmt.Errorf("definitionRevision.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(definitionrevisionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.DefinitionRevision{})
 
 	if obj == nil {
 		return nil, err

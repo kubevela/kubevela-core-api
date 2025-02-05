@@ -19,9 +19,12 @@ package v1beta1
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -45,6 +48,7 @@ type DefinitionRevisionInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.DefinitionRevisionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.DefinitionRevision, err error)
+	Apply(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.DefinitionRevision, err error)
 	DefinitionRevisionExpansion
 }
 
@@ -170,6 +174,32 @@ func (c *definitionRevisions) Patch(ctx context.Context, name string, pt types.P
 		Name(name).
 		SubResource(subresources...).
 		VersionedParams(&opts, scheme.ParameterCodec).
+		Body(data).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied definitionRevision.
+func (c *definitionRevisions) Apply(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.DefinitionRevision, err error) {
+	if definitionRevision == nil {
+		return nil, fmt.Errorf("definitionRevision provided to Apply must not be nil")
+	}
+	patchOpts := opts.ToPatchOptions()
+	data, err := json.Marshal(definitionRevision)
+	if err != nil {
+		return nil, err
+	}
+	name := definitionRevision.Name
+	if name == nil {
+		return nil, fmt.Errorf("definitionRevision.Name must be provided to Apply")
+	}
+	result = &v1beta1.DefinitionRevision{}
+	err = c.client.Patch(types.ApplyPatchType).
+		Namespace(c.ns).
+		Resource("definitionrevisions").
+		Name(*name).
+		VersionedParams(&patchOpts, scheme.ParameterCodec).
 		Body(data).
 		Do(ctx).
 		Into(result)

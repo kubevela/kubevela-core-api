@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeWorkflowStepDefinitions struct {
 	ns   string
 }
 
-var workflowstepdefinitionsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "workflowstepdefinitions"}
+var workflowstepdefinitionsResource = v1beta1.SchemeGroupVersion.WithResource("workflowstepdefinitions")
 
-var workflowstepdefinitionsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "WorkflowStepDefinition"}
+var workflowstepdefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("WorkflowStepDefinition")
 
 // Get takes name of the workflowStepDefinition, and returns the corresponding workflowStepDefinition object, and an error if there is any.
 func (c *FakeWorkflowStepDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
@@ -133,6 +135,51 @@ func (c *FakeWorkflowStepDefinitions) DeleteCollection(ctx context.Context, opts
 func (c *FakeWorkflowStepDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkflowStepDefinition, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.WorkflowStepDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.WorkflowStepDefinition), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied workflowStepDefinition.
+func (c *FakeWorkflowStepDefinitions) Apply(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	if workflowStepDefinition == nil {
+		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(workflowStepDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := workflowStepDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.WorkflowStepDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.WorkflowStepDefinition), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakeWorkflowStepDefinitions) ApplyStatus(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	if workflowStepDefinition == nil {
+		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(workflowStepDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := workflowStepDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.WorkflowStepDefinition{})
 
 	if obj == nil {
 		return nil, err

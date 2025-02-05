@@ -19,11 +19,13 @@ package fake
 
 import (
 	"context"
+	json "encoding/json"
+	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +37,9 @@ type FakeComponentDefinitions struct {
 	ns   string
 }
 
-var componentdefinitionsResource = schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "componentdefinitions"}
+var componentdefinitionsResource = v1beta1.SchemeGroupVersion.WithResource("componentdefinitions")
 
-var componentdefinitionsKind = schema.GroupVersionKind{Group: "core.oam.dev", Version: "v1beta1", Kind: "ComponentDefinition"}
+var componentdefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("ComponentDefinition")
 
 // Get takes name of the componentDefinition, and returns the corresponding componentDefinition object, and an error if there is any.
 func (c *FakeComponentDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ComponentDefinition, err error) {
@@ -133,6 +135,51 @@ func (c *FakeComponentDefinitions) DeleteCollection(ctx context.Context, opts v1
 func (c *FakeComponentDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ComponentDefinition, err error) {
 	obj, err := c.Fake.
 		Invokes(testing.NewPatchSubresourceAction(componentdefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.ComponentDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.ComponentDefinition), err
+}
+
+// Apply takes the given apply declarative configuration, applies it and returns the applied componentDefinition.
+func (c *FakeComponentDefinitions) Apply(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error) {
+	if componentDefinition == nil {
+		return nil, fmt.Errorf("componentDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(componentDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := componentDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("componentDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(componentdefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.ComponentDefinition{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1beta1.ComponentDefinition), err
+}
+
+// ApplyStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
+func (c *FakeComponentDefinitions) ApplyStatus(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error) {
+	if componentDefinition == nil {
+		return nil, fmt.Errorf("componentDefinition provided to Apply must not be nil")
+	}
+	data, err := json.Marshal(componentDefinition)
+	if err != nil {
+		return nil, err
+	}
+	name := componentDefinition.Name
+	if name == nil {
+		return nil, fmt.Errorf("componentDefinition.Name must be provided to Apply")
+	}
+	obj, err := c.Fake.
+		Invokes(testing.NewPatchSubresourceAction(componentdefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.ComponentDefinition{})
 
 	if obj == nil {
 		return nil, err
