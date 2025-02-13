@@ -43,7 +43,7 @@ func ManagedResource() *ManagedResourceApplyConfiguration {
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Cluster field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithCluster(value string) *ManagedResourceApplyConfiguration {
-	b.Cluster = &value
+	b.Cluster = value
 	return b
 }
 
@@ -51,7 +51,7 @@ func (b *ManagedResourceApplyConfiguration) WithCluster(value string) *ManagedRe
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Creator field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithCreator(value string) *ManagedResourceApplyConfiguration {
-	b.Creator = &value
+	b.Creator = value
 	return b
 }
 
@@ -59,7 +59,7 @@ func (b *ManagedResourceApplyConfiguration) WithCreator(value string) *ManagedRe
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Kind field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithKind(value string) *ManagedResourceApplyConfiguration {
-	b.Kind = &value
+	b.Kind = value
 	return b
 }
 
@@ -67,7 +67,7 @@ func (b *ManagedResourceApplyConfiguration) WithKind(value string) *ManagedResou
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Namespace field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithNamespace(value string) *ManagedResourceApplyConfiguration {
-	b.Namespace = &value
+	b.Namespace = value
 	return b
 }
 
@@ -75,7 +75,7 @@ func (b *ManagedResourceApplyConfiguration) WithNamespace(value string) *Managed
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Name field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithName(value string) *ManagedResourceApplyConfiguration {
-	b.Name = &value
+	b.Name = value
 	return b
 }
 
@@ -83,7 +83,7 @@ func (b *ManagedResourceApplyConfiguration) WithName(value string) *ManagedResou
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the UID field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithUID(value types.UID) *ManagedResourceApplyConfiguration {
-	b.UID = &value
+	b.UID = value
 	return b
 }
 
@@ -91,7 +91,7 @@ func (b *ManagedResourceApplyConfiguration) WithUID(value types.UID) *ManagedRes
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the APIVersion field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithAPIVersion(value string) *ManagedResourceApplyConfiguration {
-	b.APIVersion = &value
+	b.APIVersion = value
 	return b
 }
 
@@ -99,7 +99,7 @@ func (b *ManagedResourceApplyConfiguration) WithAPIVersion(value string) *Manage
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the ResourceVersion field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithResourceVersion(value string) *ManagedResourceApplyConfiguration {
-	b.ResourceVersion = &value
+	b.ResourceVersion = value
 	return b
 }
 
@@ -107,7 +107,7 @@ func (b *ManagedResourceApplyConfiguration) WithResourceVersion(value string) *M
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the FieldPath field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithFieldPath(value string) *ManagedResourceApplyConfiguration {
-	b.FieldPath = &value
+	b.FieldPath = value
 	return b
 }
 
@@ -115,7 +115,7 @@ func (b *ManagedResourceApplyConfiguration) WithFieldPath(value string) *Managed
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Component field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithComponent(value string) *ManagedResourceApplyConfiguration {
-	b.Component = &value
+	b.Component = value
 	return b
 }
 
@@ -123,7 +123,7 @@ func (b *ManagedResourceApplyConfiguration) WithComponent(value string) *Managed
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Trait field is set to the value of the last call.
 func (b *ManagedResourceApplyConfiguration) WithTrait(value string) *ManagedResourceApplyConfiguration {
-	b.Trait = &value
+	b.Trait = value
 	return b
 }
 
