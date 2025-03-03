@@ -37,7 +37,7 @@ func ApplicationRevisionCompression() *ApplicationRevisionCompressionApplyConfig
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Type field is set to the value of the last call.
 func (b *ApplicationRevisionCompressionApplyConfiguration) WithType(value compression.Type) *ApplicationRevisionCompressionApplyConfiguration {
-	b.Type = value
+	b.Type = &value
 	return b
 }
 
@@ -45,6 +45,6 @@ func (b *ApplicationRevisionCompressionApplyConfiguration) WithType(value compre
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Data field is set to the value of the last call.
 func (b *ApplicationRevisionCompressionApplyConfiguration) WithData(value string) *ApplicationRevisionCompressionApplyConfiguration {
-	b.Data = value
+	b.Data = &value
 	return b
 }

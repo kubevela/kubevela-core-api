@@ -37,7 +37,7 @@ func ResourceTrackerCompression() *ResourceTrackerCompressionApplyConfiguration 
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Type field is set to the value of the last call.
 func (b *ResourceTrackerCompressionApplyConfiguration) WithType(value compression.Type) *ResourceTrackerCompressionApplyConfiguration {
-	b.Type = value
+	b.Type = &value
 	return b
 }
 
@@ -45,6 +45,6 @@ func (b *ResourceTrackerCompressionApplyConfiguration) WithType(value compressio
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the Data field is set to the value of the last call.
 func (b *ResourceTrackerCompressionApplyConfiguration) WithData(value string) *ResourceTrackerCompressionApplyConfiguration {
-	b.Data = value
+	b.Data = &value
 	return b
 }
