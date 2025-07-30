@@ -8,7 +8,7 @@ on:
 
 env:
   # Common versions
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.23.8"
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Build
         run: go build -v ./...
