@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type ResourceTrackerLister interface {
 
 // resourceTrackerLister implements the ResourceTrackerLister interface.
 type resourceTrackerLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.ResourceTracker]
 }
 
 // NewResourceTrackerLister returns a new ResourceTrackerLister.
 func NewResourceTrackerLister(indexer cache.Indexer) ResourceTrackerLister {
-	return &resourceTrackerLister{indexer: indexer}
-}
-
-// List lists all ResourceTrackers in the indexer.
-func (s *resourceTrackerLister) List(selector labels.Selector) (ret []*v1beta1.ResourceTracker, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ResourceTracker))
-	})
-	return ret, err
+	return &resourceTrackerLister{listers.New[*v1beta1.ResourceTracker](indexer, v1beta1.Resource("resourcetracker"))}
 }
 
 // ResourceTrackers returns an object that can list and get ResourceTrackers.
 func (s *resourceTrackerLister) ResourceTrackers(namespace string) ResourceTrackerNamespaceLister {
-	return resourceTrackerNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return resourceTrackerNamespaceLister{listers.NewNamespaced[*v1beta1.ResourceTracker](s.ResourceIndexer, namespace)}
 }
 
 // ResourceTrackerNamespaceLister helps list and get ResourceTrackers.
@@ -73,26 +65,5 @@ type ResourceTrackerNamespaceLister interface {
 // resourceTrackerNamespaceLister implements the ResourceTrackerNamespaceLister
 // interface.
 type resourceTrackerNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all ResourceTrackers in the indexer for a given namespace.
-func (s resourceTrackerNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.ResourceTracker, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ResourceTracker))
-	})
-	return ret, err
-}
-
-// Get retrieves the ResourceTracker from the indexer for a given namespace and name.
-func (s resourceTrackerNamespaceLister) Get(name string) (*v1beta1.ResourceTracker, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("resourcetracker"), name)
-	}
-	return obj.(*v1beta1.ResourceTracker), nil
+	listers.ResourceIndexer[*v1beta1.ResourceTracker]
 }

@@ -18,6 +18,7 @@ limitations under the License.
 package fake
 
 import (
+	corev1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
 	corev1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +31,7 @@ var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 
 var localSchemeBuilder = runtime.SchemeBuilder{
+	corev1alpha1.AddToScheme,
 	corev1beta1.AddToScheme,
 }
 

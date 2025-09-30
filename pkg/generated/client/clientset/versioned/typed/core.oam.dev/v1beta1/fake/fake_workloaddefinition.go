@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var workloaddefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("WorkloadDefin
 
 // Get takes name of the workloadDefinition, and returns the corresponding workloadDefinition object, and an error if there is any.
 func (c *FakeWorkloadDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.WorkloadDefinition, err error) {
+	emptyResult := &v1beta1.WorkloadDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(workloaddefinitionsResource, c.ns, name), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewGetActionWithOptions(workloaddefinitionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkloadDefinition), err
 }
 
 // List takes label and field selectors, and returns the list of WorkloadDefinitions that match those selectors.
 func (c *FakeWorkloadDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.WorkloadDefinitionList, err error) {
+	emptyResult := &v1beta1.WorkloadDefinitionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(workloaddefinitionsResource, workloaddefinitionsKind, c.ns, opts), &v1beta1.WorkloadDefinitionList{})
+		Invokes(testing.NewListActionWithOptions(workloaddefinitionsResource, workloaddefinitionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakeWorkloadDefinitions) List(ctx context.Context, opts v1.ListOptions)
 // Watch returns a watch.Interface that watches the requested workloadDefinitions.
 func (c *FakeWorkloadDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(workloaddefinitionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(workloaddefinitionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a workloadDefinition and creates it.  Returns the server's representation of the workloadDefinition, and an error, if there is any.
 func (c *FakeWorkloadDefinitions) Create(ctx context.Context, workloadDefinition *v1beta1.WorkloadDefinition, opts v1.CreateOptions) (result *v1beta1.WorkloadDefinition, err error) {
+	emptyResult := &v1beta1.WorkloadDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(workloaddefinitionsResource, c.ns, workloadDefinition), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewCreateActionWithOptions(workloaddefinitionsResource, c.ns, workloadDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkloadDefinition), err
 }
 
 // Update takes the representation of a workloadDefinition and updates it. Returns the server's representation of the workloadDefinition, and an error, if there is any.
 func (c *FakeWorkloadDefinitions) Update(ctx context.Context, workloadDefinition *v1beta1.WorkloadDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkloadDefinition, err error) {
+	emptyResult := &v1beta1.WorkloadDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(workloaddefinitionsResource, c.ns, workloadDefinition), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewUpdateActionWithOptions(workloaddefinitionsResource, c.ns, workloadDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkloadDefinition), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeWorkloadDefinitions) UpdateStatus(ctx context.Context, workloadDefinition *v1beta1.WorkloadDefinition, opts v1.UpdateOptions) (*v1beta1.WorkloadDefinition, error) {
+func (c *FakeWorkloadDefinitions) UpdateStatus(ctx context.Context, workloadDefinition *v1beta1.WorkloadDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkloadDefinition, err error) {
+	emptyResult := &v1beta1.WorkloadDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(workloaddefinitionsResource, "status", c.ns, workloadDefinition), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(workloaddefinitionsResource, "status", c.ns, workloadDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkloadDefinition), err
 }
@@ -125,7 +127,7 @@ func (c *FakeWorkloadDefinitions) Delete(ctx context.Context, name string, opts 
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeWorkloadDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(workloaddefinitionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(workloaddefinitionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.WorkloadDefinitionList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakeWorkloadDefinitions) DeleteCollection(ctx context.Context, opts v1.
 
 // Patch applies the patch and returns the patched workloadDefinition.
 func (c *FakeWorkloadDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkloadDefinition, err error) {
+	emptyResult := &v1beta1.WorkloadDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workloaddefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.WorkloadDefinition{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(workloaddefinitionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.WorkloadDefinition), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied workloadDefinition.
-func (c *FakeWorkloadDefinitions) Apply(ctx context.Context, workloadDefinition *coreoamdevv1beta1.WorkloadDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkloadDefinition, err error) {
-	if workloadDefinition == nil {
-		return nil, fmt.Errorf("workloadDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(workloadDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := workloadDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workloadDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workloaddefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.WorkloadDefinition{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.WorkloadDefinition), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeWorkloadDefinitions) ApplyStatus(ctx context.Context, workloadDefinition *coreoamdevv1beta1.WorkloadDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkloadDefinition, err error) {
-	if workloadDefinition == nil {
-		return nil, fmt.Errorf("workloadDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(workloadDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := workloadDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workloadDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workloaddefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.WorkloadDefinition{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkloadDefinition), err
 }

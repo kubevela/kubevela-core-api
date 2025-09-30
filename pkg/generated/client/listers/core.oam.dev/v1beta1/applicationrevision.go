@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type ApplicationRevisionLister interface {
 
 // applicationRevisionLister implements the ApplicationRevisionLister interface.
 type applicationRevisionLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.ApplicationRevision]
 }
 
 // NewApplicationRevisionLister returns a new ApplicationRevisionLister.
 func NewApplicationRevisionLister(indexer cache.Indexer) ApplicationRevisionLister {
-	return &applicationRevisionLister{indexer: indexer}
-}
-
-// List lists all ApplicationRevisions in the indexer.
-func (s *applicationRevisionLister) List(selector labels.Selector) (ret []*v1beta1.ApplicationRevision, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ApplicationRevision))
-	})
-	return ret, err
+	return &applicationRevisionLister{listers.New[*v1beta1.ApplicationRevision](indexer, v1beta1.Resource("applicationrevision"))}
 }
 
 // ApplicationRevisions returns an object that can list and get ApplicationRevisions.
 func (s *applicationRevisionLister) ApplicationRevisions(namespace string) ApplicationRevisionNamespaceLister {
-	return applicationRevisionNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return applicationRevisionNamespaceLister{listers.NewNamespaced[*v1beta1.ApplicationRevision](s.ResourceIndexer, namespace)}
 }
 
 // ApplicationRevisionNamespaceLister helps list and get ApplicationRevisions.
@@ -73,26 +65,5 @@ type ApplicationRevisionNamespaceLister interface {
 // applicationRevisionNamespaceLister implements the ApplicationRevisionNamespaceLister
 // interface.
 type applicationRevisionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all ApplicationRevisions in the indexer for a given namespace.
-func (s applicationRevisionNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.ApplicationRevision, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ApplicationRevision))
-	})
-	return ret, err
-}
-
-// Get retrieves the ApplicationRevision from the indexer for a given namespace and name.
-func (s applicationRevisionNamespaceLister) Get(name string) (*v1beta1.ApplicationRevision, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("applicationrevision"), name)
-	}
-	return obj.(*v1beta1.ApplicationRevision), nil
+	listers.ResourceIndexer[*v1beta1.ApplicationRevision]
 }

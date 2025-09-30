@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type ApplicationLister interface {
 
 // applicationLister implements the ApplicationLister interface.
 type applicationLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.Application]
 }
 
 // NewApplicationLister returns a new ApplicationLister.
 func NewApplicationLister(indexer cache.Indexer) ApplicationLister {
-	return &applicationLister{indexer: indexer}
-}
-
-// List lists all Applications in the indexer.
-func (s *applicationLister) List(selector labels.Selector) (ret []*v1beta1.Application, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.Application))
-	})
-	return ret, err
+	return &applicationLister{listers.New[*v1beta1.Application](indexer, v1beta1.Resource("application"))}
 }
 
 // Applications returns an object that can list and get Applications.
 func (s *applicationLister) Applications(namespace string) ApplicationNamespaceLister {
-	return applicationNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return applicationNamespaceLister{listers.NewNamespaced[*v1beta1.Application](s.ResourceIndexer, namespace)}
 }
 
 // ApplicationNamespaceLister helps list and get Applications.
@@ -73,26 +65,5 @@ type ApplicationNamespaceLister interface {
 // applicationNamespaceLister implements the ApplicationNamespaceLister
 // interface.
 type applicationNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all Applications in the indexer for a given namespace.
-func (s applicationNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.Application, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.Application))
-	})
-	return ret, err
-}
-
-// Get retrieves the Application from the indexer for a given namespace and name.
-func (s applicationNamespaceLister) Get(name string) (*v1beta1.Application, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("application"), name)
-	}
-	return obj.(*v1beta1.Application), nil
+	listers.ResourceIndexer[*v1beta1.Application]
 }

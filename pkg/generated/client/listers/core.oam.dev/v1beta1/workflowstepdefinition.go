@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type WorkflowStepDefinitionLister interface {
 
 // workflowStepDefinitionLister implements the WorkflowStepDefinitionLister interface.
 type workflowStepDefinitionLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.WorkflowStepDefinition]
 }
 
 // NewWorkflowStepDefinitionLister returns a new WorkflowStepDefinitionLister.
 func NewWorkflowStepDefinitionLister(indexer cache.Indexer) WorkflowStepDefinitionLister {
-	return &workflowStepDefinitionLister{indexer: indexer}
-}
-
-// List lists all WorkflowStepDefinitions in the indexer.
-func (s *workflowStepDefinitionLister) List(selector labels.Selector) (ret []*v1beta1.WorkflowStepDefinition, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.WorkflowStepDefinition))
-	})
-	return ret, err
+	return &workflowStepDefinitionLister{listers.New[*v1beta1.WorkflowStepDefinition](indexer, v1beta1.Resource("workflowstepdefinition"))}
 }
 
 // WorkflowStepDefinitions returns an object that can list and get WorkflowStepDefinitions.
 func (s *workflowStepDefinitionLister) WorkflowStepDefinitions(namespace string) WorkflowStepDefinitionNamespaceLister {
-	return workflowStepDefinitionNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return workflowStepDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.WorkflowStepDefinition](s.ResourceIndexer, namespace)}
 }
 
 // WorkflowStepDefinitionNamespaceLister helps list and get WorkflowStepDefinitions.
@@ -73,26 +65,5 @@ type WorkflowStepDefinitionNamespaceLister interface {
 // workflowStepDefinitionNamespaceLister implements the WorkflowStepDefinitionNamespaceLister
 // interface.
 type workflowStepDefinitionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all WorkflowStepDefinitions in the indexer for a given namespace.
-func (s workflowStepDefinitionNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.WorkflowStepDefinition, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.WorkflowStepDefinition))
-	})
-	return ret, err
-}
-
-// Get retrieves the WorkflowStepDefinition from the indexer for a given namespace and name.
-func (s workflowStepDefinitionNamespaceLister) Get(name string) (*v1beta1.WorkflowStepDefinition, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("workflowstepdefinition"), name)
-	}
-	return obj.(*v1beta1.WorkflowStepDefinition), nil
+	listers.ResourceIndexer[*v1beta1.WorkflowStepDefinition]
 }

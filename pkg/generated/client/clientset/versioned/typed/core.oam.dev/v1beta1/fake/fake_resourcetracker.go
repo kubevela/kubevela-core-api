@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var resourcetrackersKind = v1beta1.SchemeGroupVersion.WithKind("ResourceTracker"
 
 // Get takes name of the resourceTracker, and returns the corresponding resourceTracker object, and an error if there is any.
 func (c *FakeResourceTrackers) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ResourceTracker, err error) {
+	emptyResult := &v1beta1.ResourceTracker{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(resourcetrackersResource, c.ns, name), &v1beta1.ResourceTracker{})
+		Invokes(testing.NewGetActionWithOptions(resourcetrackersResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ResourceTracker), err
 }
 
 // List takes label and field selectors, and returns the list of ResourceTrackers that match those selectors.
 func (c *FakeResourceTrackers) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ResourceTrackerList, err error) {
+	emptyResult := &v1beta1.ResourceTrackerList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(resourcetrackersResource, resourcetrackersKind, c.ns, opts), &v1beta1.ResourceTrackerList{})
+		Invokes(testing.NewListActionWithOptions(resourcetrackersResource, resourcetrackersKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,28 +76,30 @@ func (c *FakeResourceTrackers) List(ctx context.Context, opts v1.ListOptions) (r
 // Watch returns a watch.Interface that watches the requested resourceTrackers.
 func (c *FakeResourceTrackers) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(resourcetrackersResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(resourcetrackersResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a resourceTracker and creates it.  Returns the server's representation of the resourceTracker, and an error, if there is any.
 func (c *FakeResourceTrackers) Create(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.CreateOptions) (result *v1beta1.ResourceTracker, err error) {
+	emptyResult := &v1beta1.ResourceTracker{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(resourcetrackersResource, c.ns, resourceTracker), &v1beta1.ResourceTracker{})
+		Invokes(testing.NewCreateActionWithOptions(resourcetrackersResource, c.ns, resourceTracker, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ResourceTracker), err
 }
 
 // Update takes the representation of a resourceTracker and updates it. Returns the server's representation of the resourceTracker, and an error, if there is any.
 func (c *FakeResourceTrackers) Update(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (result *v1beta1.ResourceTracker, err error) {
+	emptyResult := &v1beta1.ResourceTracker{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(resourcetrackersResource, c.ns, resourceTracker), &v1beta1.ResourceTracker{})
+		Invokes(testing.NewUpdateActionWithOptions(resourcetrackersResource, c.ns, resourceTracker, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ResourceTracker), err
 }
@@ -113,7 +114,7 @@ func (c *FakeResourceTrackers) Delete(ctx context.Context, name string, opts v1.
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeResourceTrackers) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(resourcetrackersResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(resourcetrackersResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.ResourceTrackerList{})
 	return err
@@ -121,33 +122,12 @@ func (c *FakeResourceTrackers) DeleteCollection(ctx context.Context, opts v1.Del
 
 // Patch applies the patch and returns the patched resourceTracker.
 func (c *FakeResourceTrackers) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error) {
+	emptyResult := &v1beta1.ResourceTracker{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(resourcetrackersResource, c.ns, name, pt, data, subresources...), &v1beta1.ResourceTracker{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(resourcetrackersResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.ResourceTracker), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied resourceTracker.
-func (c *FakeResourceTrackers) Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error) {
-	if resourceTracker == nil {
-		return nil, fmt.Errorf("resourceTracker provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(resourceTracker)
-	if err != nil {
-		return nil, err
-	}
-	name := resourceTracker.Name
-	if name == nil {
-		return nil, fmt.Errorf("resourceTracker.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(resourcetrackersResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.ResourceTracker{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ResourceTracker), err
 }

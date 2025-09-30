@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var definitionrevisionsKind = v1beta1.SchemeGroupVersion.WithKind("DefinitionRev
 
 // Get takes name of the definitionRevision, and returns the corresponding definitionRevision object, and an error if there is any.
 func (c *FakeDefinitionRevisions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.DefinitionRevision, err error) {
+	emptyResult := &v1beta1.DefinitionRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(definitionrevisionsResource, c.ns, name), &v1beta1.DefinitionRevision{})
+		Invokes(testing.NewGetActionWithOptions(definitionrevisionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.DefinitionRevision), err
 }
 
 // List takes label and field selectors, and returns the list of DefinitionRevisions that match those selectors.
 func (c *FakeDefinitionRevisions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.DefinitionRevisionList, err error) {
+	emptyResult := &v1beta1.DefinitionRevisionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(definitionrevisionsResource, definitionrevisionsKind, c.ns, opts), &v1beta1.DefinitionRevisionList{})
+		Invokes(testing.NewListActionWithOptions(definitionrevisionsResource, definitionrevisionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,28 +76,30 @@ func (c *FakeDefinitionRevisions) List(ctx context.Context, opts v1.ListOptions)
 // Watch returns a watch.Interface that watches the requested definitionRevisions.
 func (c *FakeDefinitionRevisions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(definitionrevisionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(definitionrevisionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a definitionRevision and creates it.  Returns the server's representation of the definitionRevision, and an error, if there is any.
 func (c *FakeDefinitionRevisions) Create(ctx context.Context, definitionRevision *v1beta1.DefinitionRevision, opts v1.CreateOptions) (result *v1beta1.DefinitionRevision, err error) {
+	emptyResult := &v1beta1.DefinitionRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(definitionrevisionsResource, c.ns, definitionRevision), &v1beta1.DefinitionRevision{})
+		Invokes(testing.NewCreateActionWithOptions(definitionrevisionsResource, c.ns, definitionRevision, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.DefinitionRevision), err
 }
 
 // Update takes the representation of a definitionRevision and updates it. Returns the server's representation of the definitionRevision, and an error, if there is any.
 func (c *FakeDefinitionRevisions) Update(ctx context.Context, definitionRevision *v1beta1.DefinitionRevision, opts v1.UpdateOptions) (result *v1beta1.DefinitionRevision, err error) {
+	emptyResult := &v1beta1.DefinitionRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(definitionrevisionsResource, c.ns, definitionRevision), &v1beta1.DefinitionRevision{})
+		Invokes(testing.NewUpdateActionWithOptions(definitionrevisionsResource, c.ns, definitionRevision, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.DefinitionRevision), err
 }
@@ -113,7 +114,7 @@ func (c *FakeDefinitionRevisions) Delete(ctx context.Context, name string, opts 
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeDefinitionRevisions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(definitionrevisionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(definitionrevisionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.DefinitionRevisionList{})
 	return err
@@ -121,33 +122,12 @@ func (c *FakeDefinitionRevisions) DeleteCollection(ctx context.Context, opts v1.
 
 // Patch applies the patch and returns the patched definitionRevision.
 func (c *FakeDefinitionRevisions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.DefinitionRevision, err error) {
+	emptyResult := &v1beta1.DefinitionRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(definitionrevisionsResource, c.ns, name, pt, data, subresources...), &v1beta1.DefinitionRevision{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(definitionrevisionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.DefinitionRevision), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied definitionRevision.
-func (c *FakeDefinitionRevisions) Apply(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.DefinitionRevision, err error) {
-	if definitionRevision == nil {
-		return nil, fmt.Errorf("definitionRevision provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(definitionRevision)
-	if err != nil {
-		return nil, err
-	}
-	name := definitionRevision.Name
-	if name == nil {
-		return nil, fmt.Errorf("definitionRevision.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(definitionrevisionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.DefinitionRevision{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.DefinitionRevision), err
 }

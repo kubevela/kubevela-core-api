@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var applicationsKind = v1beta1.SchemeGroupVersion.WithKind("Application")
 
 // Get takes name of the application, and returns the corresponding application object, and an error if there is any.
 func (c *FakeApplications) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.Application, err error) {
+	emptyResult := &v1beta1.Application{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(applicationsResource, c.ns, name), &v1beta1.Application{})
+		Invokes(testing.NewGetActionWithOptions(applicationsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.Application), err
 }
 
 // List takes label and field selectors, and returns the list of Applications that match those selectors.
 func (c *FakeApplications) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ApplicationList, err error) {
+	emptyResult := &v1beta1.ApplicationList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(applicationsResource, applicationsKind, c.ns, opts), &v1beta1.ApplicationList{})
+		Invokes(testing.NewListActionWithOptions(applicationsResource, applicationsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakeApplications) List(ctx context.Context, opts v1.ListOptions) (resul
 // Watch returns a watch.Interface that watches the requested applications.
 func (c *FakeApplications) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(applicationsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(applicationsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a application and creates it.  Returns the server's representation of the application, and an error, if there is any.
 func (c *FakeApplications) Create(ctx context.Context, application *v1beta1.Application, opts v1.CreateOptions) (result *v1beta1.Application, err error) {
+	emptyResult := &v1beta1.Application{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(applicationsResource, c.ns, application), &v1beta1.Application{})
+		Invokes(testing.NewCreateActionWithOptions(applicationsResource, c.ns, application, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.Application), err
 }
 
 // Update takes the representation of a application and updates it. Returns the server's representation of the application, and an error, if there is any.
 func (c *FakeApplications) Update(ctx context.Context, application *v1beta1.Application, opts v1.UpdateOptions) (result *v1beta1.Application, err error) {
+	emptyResult := &v1beta1.Application{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(applicationsResource, c.ns, application), &v1beta1.Application{})
+		Invokes(testing.NewUpdateActionWithOptions(applicationsResource, c.ns, application, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.Application), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeApplications) UpdateStatus(ctx context.Context, application *v1beta1.Application, opts v1.UpdateOptions) (*v1beta1.Application, error) {
+func (c *FakeApplications) UpdateStatus(ctx context.Context, application *v1beta1.Application, opts v1.UpdateOptions) (result *v1beta1.Application, err error) {
+	emptyResult := &v1beta1.Application{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(applicationsResource, "status", c.ns, application), &v1beta1.Application{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(applicationsResource, "status", c.ns, application, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.Application), err
 }
@@ -125,7 +127,7 @@ func (c *FakeApplications) Delete(ctx context.Context, name string, opts v1.Dele
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeApplications) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(applicationsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(applicationsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.ApplicationList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakeApplications) DeleteCollection(ctx context.Context, opts v1.DeleteO
 
 // Patch applies the patch and returns the patched application.
 func (c *FakeApplications) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.Application, err error) {
+	emptyResult := &v1beta1.Application{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, name, pt, data, subresources...), &v1beta1.Application{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(applicationsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.Application), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied application.
-func (c *FakeApplications) Apply(ctx context.Context, application *coreoamdevv1beta1.ApplicationApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.Application, err error) {
-	if application == nil {
-		return nil, fmt.Errorf("application provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(application)
-	if err != nil {
-		return nil, err
-	}
-	name := application.Name
-	if name == nil {
-		return nil, fmt.Errorf("application.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.Application{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.Application), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeApplications) ApplyStatus(ctx context.Context, application *coreoamdevv1beta1.ApplicationApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.Application, err error) {
-	if application == nil {
-		return nil, fmt.Errorf("application provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(application)
-	if err != nil {
-		return nil, err
-	}
-	name := application.Name
-	if name == nil {
-		return nil, fmt.Errorf("application.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.Application{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.Application), err
 }

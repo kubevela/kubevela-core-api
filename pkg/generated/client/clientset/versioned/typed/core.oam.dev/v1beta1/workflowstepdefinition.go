@@ -19,17 +19,13 @@ package v1beta1
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
-	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	gentype "k8s.io/client-go/gentype"
 )
 
 // WorkflowStepDefinitionsGetter has a method to return a WorkflowStepDefinitionInterface.
@@ -42,6 +38,7 @@ type WorkflowStepDefinitionsGetter interface {
 type WorkflowStepDefinitionInterface interface {
 	Create(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.CreateOptions) (*v1beta1.WorkflowStepDefinition, error)
 	Update(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*v1beta1.WorkflowStepDefinition, error)
+	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
 	UpdateStatus(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*v1beta1.WorkflowStepDefinition, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
@@ -49,207 +46,23 @@ type WorkflowStepDefinitionInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.WorkflowStepDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkflowStepDefinition, err error)
-	Apply(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error)
-	ApplyStatus(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error)
 	WorkflowStepDefinitionExpansion
 }
 
 // workflowStepDefinitions implements WorkflowStepDefinitionInterface
 type workflowStepDefinitions struct {
-	client rest.Interface
-	ns     string
+	*gentype.ClientWithList[*v1beta1.WorkflowStepDefinition, *v1beta1.WorkflowStepDefinitionList]
 }
 
 // newWorkflowStepDefinitions returns a WorkflowStepDefinitions
 func newWorkflowStepDefinitions(c *CoreV1beta1Client, namespace string) *workflowStepDefinitions {
 	return &workflowStepDefinitions{
-		client: c.RESTClient(),
-		ns:     namespace,
+		gentype.NewClientWithList[*v1beta1.WorkflowStepDefinition, *v1beta1.WorkflowStepDefinitionList](
+			"workflowstepdefinitions",
+			c.RESTClient(),
+			scheme.ParameterCodec,
+			namespace,
+			func() *v1beta1.WorkflowStepDefinition { return &v1beta1.WorkflowStepDefinition{} },
+			func() *v1beta1.WorkflowStepDefinitionList { return &v1beta1.WorkflowStepDefinitionList{} }),
 	}
-}
-
-// Get takes name of the workflowStepDefinition, and returns the corresponding workflowStepDefinition object, and an error if there is any.
-func (c *workflowStepDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(name).
-		VersionedParams(&options, scheme.ParameterCodec).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// List takes label and field selectors, and returns the list of WorkflowStepDefinitions that match those selectors.
-func (c *workflowStepDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.WorkflowStepDefinitionList, err error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	result = &v1beta1.WorkflowStepDefinitionList{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Watch returns a watch.Interface that watches the requested workflowStepDefinitions.
-func (c *workflowStepDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	opts.Watch = true
-	return c.client.Get().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Watch(ctx)
-}
-
-// Create takes the representation of a workflowStepDefinition and creates it.  Returns the server's representation of the workflowStepDefinition, and an error, if there is any.
-func (c *workflowStepDefinitions) Create(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.CreateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Post().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(workflowStepDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Update takes the representation of a workflowStepDefinition and updates it. Returns the server's representation of the workflowStepDefinition, and an error, if there is any.
-func (c *workflowStepDefinitions) Update(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(workflowStepDefinition.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(workflowStepDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *workflowStepDefinitions) UpdateStatus(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(workflowStepDefinition.Name).
-		SubResource("status").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(workflowStepDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Delete takes name of the workflowStepDefinition and deletes it. Returns an error if one occurs.
-func (c *workflowStepDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(name).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *workflowStepDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	var timeout time.Duration
-	if listOpts.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
-	}
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		VersionedParams(&listOpts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// Patch applies the patch and returns the patched workflowStepDefinition.
-func (c *workflowStepDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkflowStepDefinition, err error) {
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Patch(pt).
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(name).
-		SubResource(subresources...).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied workflowStepDefinition.
-func (c *workflowStepDefinitions) Apply(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	if workflowStepDefinition == nil {
-		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
-	}
-	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(workflowStepDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := workflowStepDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
-	}
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Patch(types.ApplyPatchType).
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(*name).
-		VersionedParams(&patchOpts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *workflowStepDefinitions) ApplyStatus(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	if workflowStepDefinition == nil {
-		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
-	}
-	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(workflowStepDefinition)
-	if err != nil {
-		return nil, err
-	}
-
-	name := workflowStepDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
-	}
-
-	result = &v1beta1.WorkflowStepDefinition{}
-	err = c.client.Patch(types.ApplyPatchType).
-		Namespace(c.ns).
-		Resource("workflowstepdefinitions").
-		Name(*name).
-		SubResource("status").
-		VersionedParams(&patchOpts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
 }

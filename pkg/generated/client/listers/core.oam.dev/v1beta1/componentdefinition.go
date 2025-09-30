@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type ComponentDefinitionLister interface {
 
 // componentDefinitionLister implements the ComponentDefinitionLister interface.
 type componentDefinitionLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.ComponentDefinition]
 }
 
 // NewComponentDefinitionLister returns a new ComponentDefinitionLister.
 func NewComponentDefinitionLister(indexer cache.Indexer) ComponentDefinitionLister {
-	return &componentDefinitionLister{indexer: indexer}
-}
-
-// List lists all ComponentDefinitions in the indexer.
-func (s *componentDefinitionLister) List(selector labels.Selector) (ret []*v1beta1.ComponentDefinition, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ComponentDefinition))
-	})
-	return ret, err
+	return &componentDefinitionLister{listers.New[*v1beta1.ComponentDefinition](indexer, v1beta1.Resource("componentdefinition"))}
 }
 
 // ComponentDefinitions returns an object that can list and get ComponentDefinitions.
 func (s *componentDefinitionLister) ComponentDefinitions(namespace string) ComponentDefinitionNamespaceLister {
-	return componentDefinitionNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return componentDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.ComponentDefinition](s.ResourceIndexer, namespace)}
 }
 
 // ComponentDefinitionNamespaceLister helps list and get ComponentDefinitions.
@@ -73,26 +65,5 @@ type ComponentDefinitionNamespaceLister interface {
 // componentDefinitionNamespaceLister implements the ComponentDefinitionNamespaceLister
 // interface.
 type componentDefinitionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all ComponentDefinitions in the indexer for a given namespace.
-func (s componentDefinitionNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.ComponentDefinition, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.ComponentDefinition))
-	})
-	return ret, err
-}
-
-// Get retrieves the ComponentDefinition from the indexer for a given namespace and name.
-func (s componentDefinitionNamespaceLister) Get(name string) (*v1beta1.ComponentDefinition, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("componentdefinition"), name)
-	}
-	return obj.(*v1beta1.ComponentDefinition), nil
+	listers.ResourceIndexer[*v1beta1.ComponentDefinition]
 }

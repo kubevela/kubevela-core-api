@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var applicationrevisionsKind = v1beta1.SchemeGroupVersion.WithKind("ApplicationR
 
 // Get takes name of the applicationRevision, and returns the corresponding applicationRevision object, and an error if there is any.
 func (c *FakeApplicationRevisions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ApplicationRevision, err error) {
+	emptyResult := &v1beta1.ApplicationRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(applicationrevisionsResource, c.ns, name), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewGetActionWithOptions(applicationrevisionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ApplicationRevision), err
 }
 
 // List takes label and field selectors, and returns the list of ApplicationRevisions that match those selectors.
 func (c *FakeApplicationRevisions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ApplicationRevisionList, err error) {
+	emptyResult := &v1beta1.ApplicationRevisionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(applicationrevisionsResource, applicationrevisionsKind, c.ns, opts), &v1beta1.ApplicationRevisionList{})
+		Invokes(testing.NewListActionWithOptions(applicationrevisionsResource, applicationrevisionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakeApplicationRevisions) List(ctx context.Context, opts v1.ListOptions
 // Watch returns a watch.Interface that watches the requested applicationRevisions.
 func (c *FakeApplicationRevisions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(applicationrevisionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(applicationrevisionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a applicationRevision and creates it.  Returns the server's representation of the applicationRevision, and an error, if there is any.
 func (c *FakeApplicationRevisions) Create(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.CreateOptions) (result *v1beta1.ApplicationRevision, err error) {
+	emptyResult := &v1beta1.ApplicationRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(applicationrevisionsResource, c.ns, applicationRevision), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewCreateActionWithOptions(applicationrevisionsResource, c.ns, applicationRevision, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ApplicationRevision), err
 }
 
 // Update takes the representation of a applicationRevision and updates it. Returns the server's representation of the applicationRevision, and an error, if there is any.
 func (c *FakeApplicationRevisions) Update(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (result *v1beta1.ApplicationRevision, err error) {
+	emptyResult := &v1beta1.ApplicationRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(applicationrevisionsResource, c.ns, applicationRevision), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewUpdateActionWithOptions(applicationrevisionsResource, c.ns, applicationRevision, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ApplicationRevision), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeApplicationRevisions) UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error) {
+func (c *FakeApplicationRevisions) UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (result *v1beta1.ApplicationRevision, err error) {
+	emptyResult := &v1beta1.ApplicationRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(applicationrevisionsResource, "status", c.ns, applicationRevision), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(applicationrevisionsResource, "status", c.ns, applicationRevision, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ApplicationRevision), err
 }
@@ -125,7 +127,7 @@ func (c *FakeApplicationRevisions) Delete(ctx context.Context, name string, opts
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeApplicationRevisions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(applicationrevisionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(applicationrevisionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.ApplicationRevisionList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakeApplicationRevisions) DeleteCollection(ctx context.Context, opts v1
 
 // Patch applies the patch and returns the patched applicationRevision.
 func (c *FakeApplicationRevisions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ApplicationRevision, err error) {
+	emptyResult := &v1beta1.ApplicationRevision{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, name, pt, data, subresources...), &v1beta1.ApplicationRevision{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(applicationrevisionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.ApplicationRevision), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied applicationRevision.
-func (c *FakeApplicationRevisions) Apply(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ApplicationRevision, err error) {
-	if applicationRevision == nil {
-		return nil, fmt.Errorf("applicationRevision provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(applicationRevision)
-	if err != nil {
-		return nil, err
-	}
-	name := applicationRevision.Name
-	if name == nil {
-		return nil, fmt.Errorf("applicationRevision.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.ApplicationRevision{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.ApplicationRevision), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeApplicationRevisions) ApplyStatus(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevisionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ApplicationRevision, err error) {
-	if applicationRevision == nil {
-		return nil, fmt.Errorf("applicationRevision provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(applicationRevision)
-	if err != nil {
-		return nil, err
-	}
-	name := applicationRevision.Name
-	if name == nil {
-		return nil, fmt.Errorf("applicationRevision.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(applicationrevisionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.ApplicationRevision{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.ApplicationRevision), err
 }

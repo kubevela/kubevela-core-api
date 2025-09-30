@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var policydefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("PolicyDefinitio
 
 // Get takes name of the policyDefinition, and returns the corresponding policyDefinition object, and an error if there is any.
 func (c *FakePolicyDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.PolicyDefinition, err error) {
+	emptyResult := &v1beta1.PolicyDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(policydefinitionsResource, c.ns, name), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewGetActionWithOptions(policydefinitionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.PolicyDefinition), err
 }
 
 // List takes label and field selectors, and returns the list of PolicyDefinitions that match those selectors.
 func (c *FakePolicyDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.PolicyDefinitionList, err error) {
+	emptyResult := &v1beta1.PolicyDefinitionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(policydefinitionsResource, policydefinitionsKind, c.ns, opts), &v1beta1.PolicyDefinitionList{})
+		Invokes(testing.NewListActionWithOptions(policydefinitionsResource, policydefinitionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakePolicyDefinitions) List(ctx context.Context, opts v1.ListOptions) (
 // Watch returns a watch.Interface that watches the requested policyDefinitions.
 func (c *FakePolicyDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(policydefinitionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(policydefinitionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a policyDefinition and creates it.  Returns the server's representation of the policyDefinition, and an error, if there is any.
 func (c *FakePolicyDefinitions) Create(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.CreateOptions) (result *v1beta1.PolicyDefinition, err error) {
+	emptyResult := &v1beta1.PolicyDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(policydefinitionsResource, c.ns, policyDefinition), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewCreateActionWithOptions(policydefinitionsResource, c.ns, policyDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.PolicyDefinition), err
 }
 
 // Update takes the representation of a policyDefinition and updates it. Returns the server's representation of the policyDefinition, and an error, if there is any.
 func (c *FakePolicyDefinitions) Update(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.UpdateOptions) (result *v1beta1.PolicyDefinition, err error) {
+	emptyResult := &v1beta1.PolicyDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(policydefinitionsResource, c.ns, policyDefinition), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewUpdateActionWithOptions(policydefinitionsResource, c.ns, policyDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.PolicyDefinition), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakePolicyDefinitions) UpdateStatus(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.UpdateOptions) (*v1beta1.PolicyDefinition, error) {
+func (c *FakePolicyDefinitions) UpdateStatus(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.UpdateOptions) (result *v1beta1.PolicyDefinition, err error) {
+	emptyResult := &v1beta1.PolicyDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(policydefinitionsResource, "status", c.ns, policyDefinition), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(policydefinitionsResource, "status", c.ns, policyDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.PolicyDefinition), err
 }
@@ -125,7 +127,7 @@ func (c *FakePolicyDefinitions) Delete(ctx context.Context, name string, opts v1
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakePolicyDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(policydefinitionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(policydefinitionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.PolicyDefinitionList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakePolicyDefinitions) DeleteCollection(ctx context.Context, opts v1.De
 
 // Patch applies the patch and returns the patched policyDefinition.
 func (c *FakePolicyDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PolicyDefinition, err error) {
+	emptyResult := &v1beta1.PolicyDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.PolicyDefinition{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(policydefinitionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.PolicyDefinition), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied policyDefinition.
-func (c *FakePolicyDefinitions) Apply(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
-	if policyDefinition == nil {
-		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(policyDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := policyDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.PolicyDefinition{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.PolicyDefinition), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakePolicyDefinitions) ApplyStatus(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.PolicyDefinition, err error) {
-	if policyDefinition == nil {
-		return nil, fmt.Errorf("policyDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(policyDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := policyDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("policyDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(policydefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.PolicyDefinition{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.PolicyDefinition), err
 }

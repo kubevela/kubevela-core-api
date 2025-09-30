@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type DefinitionRevisionLister interface {
 
 // definitionRevisionLister implements the DefinitionRevisionLister interface.
 type definitionRevisionLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.DefinitionRevision]
 }
 
 // NewDefinitionRevisionLister returns a new DefinitionRevisionLister.
 func NewDefinitionRevisionLister(indexer cache.Indexer) DefinitionRevisionLister {
-	return &definitionRevisionLister{indexer: indexer}
-}
-
-// List lists all DefinitionRevisions in the indexer.
-func (s *definitionRevisionLister) List(selector labels.Selector) (ret []*v1beta1.DefinitionRevision, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.DefinitionRevision))
-	})
-	return ret, err
+	return &definitionRevisionLister{listers.New[*v1beta1.DefinitionRevision](indexer, v1beta1.Resource("definitionrevision"))}
 }
 
 // DefinitionRevisions returns an object that can list and get DefinitionRevisions.
 func (s *definitionRevisionLister) DefinitionRevisions(namespace string) DefinitionRevisionNamespaceLister {
-	return definitionRevisionNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return definitionRevisionNamespaceLister{listers.NewNamespaced[*v1beta1.DefinitionRevision](s.ResourceIndexer, namespace)}
 }
 
 // DefinitionRevisionNamespaceLister helps list and get DefinitionRevisions.
@@ -73,26 +65,5 @@ type DefinitionRevisionNamespaceLister interface {
 // definitionRevisionNamespaceLister implements the DefinitionRevisionNamespaceLister
 // interface.
 type definitionRevisionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all DefinitionRevisions in the indexer for a given namespace.
-func (s definitionRevisionNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.DefinitionRevision, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.DefinitionRevision))
-	})
-	return ret, err
-}
-
-// Get retrieves the DefinitionRevision from the indexer for a given namespace and name.
-func (s definitionRevisionNamespaceLister) Get(name string) (*v1beta1.DefinitionRevision, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("definitionrevision"), name)
-	}
-	return obj.(*v1beta1.DefinitionRevision), nil
+	listers.ResourceIndexer[*v1beta1.DefinitionRevision]
 }

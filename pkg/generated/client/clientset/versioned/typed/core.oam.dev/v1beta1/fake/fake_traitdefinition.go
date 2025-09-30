@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var traitdefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("TraitDefinition"
 
 // Get takes name of the traitDefinition, and returns the corresponding traitDefinition object, and an error if there is any.
 func (c *FakeTraitDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.TraitDefinition, err error) {
+	emptyResult := &v1beta1.TraitDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(traitdefinitionsResource, c.ns, name), &v1beta1.TraitDefinition{})
+		Invokes(testing.NewGetActionWithOptions(traitdefinitionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.TraitDefinition), err
 }
 
 // List takes label and field selectors, and returns the list of TraitDefinitions that match those selectors.
 func (c *FakeTraitDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.TraitDefinitionList, err error) {
+	emptyResult := &v1beta1.TraitDefinitionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(traitdefinitionsResource, traitdefinitionsKind, c.ns, opts), &v1beta1.TraitDefinitionList{})
+		Invokes(testing.NewListActionWithOptions(traitdefinitionsResource, traitdefinitionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakeTraitDefinitions) List(ctx context.Context, opts v1.ListOptions) (r
 // Watch returns a watch.Interface that watches the requested traitDefinitions.
 func (c *FakeTraitDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(traitdefinitionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(traitdefinitionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a traitDefinition and creates it.  Returns the server's representation of the traitDefinition, and an error, if there is any.
 func (c *FakeTraitDefinitions) Create(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.CreateOptions) (result *v1beta1.TraitDefinition, err error) {
+	emptyResult := &v1beta1.TraitDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(traitdefinitionsResource, c.ns, traitDefinition), &v1beta1.TraitDefinition{})
+		Invokes(testing.NewCreateActionWithOptions(traitdefinitionsResource, c.ns, traitDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.TraitDefinition), err
 }
 
 // Update takes the representation of a traitDefinition and updates it. Returns the server's representation of the traitDefinition, and an error, if there is any.
 func (c *FakeTraitDefinitions) Update(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.UpdateOptions) (result *v1beta1.TraitDefinition, err error) {
+	emptyResult := &v1beta1.TraitDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(traitdefinitionsResource, c.ns, traitDefinition), &v1beta1.TraitDefinition{})
+		Invokes(testing.NewUpdateActionWithOptions(traitdefinitionsResource, c.ns, traitDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.TraitDefinition), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeTraitDefinitions) UpdateStatus(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.UpdateOptions) (*v1beta1.TraitDefinition, error) {
+func (c *FakeTraitDefinitions) UpdateStatus(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.UpdateOptions) (result *v1beta1.TraitDefinition, err error) {
+	emptyResult := &v1beta1.TraitDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(traitdefinitionsResource, "status", c.ns, traitDefinition), &v1beta1.TraitDefinition{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(traitdefinitionsResource, "status", c.ns, traitDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.TraitDefinition), err
 }
@@ -125,7 +127,7 @@ func (c *FakeTraitDefinitions) Delete(ctx context.Context, name string, opts v1.
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeTraitDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(traitdefinitionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(traitdefinitionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.TraitDefinitionList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakeTraitDefinitions) DeleteCollection(ctx context.Context, opts v1.Del
 
 // Patch applies the patch and returns the patched traitDefinition.
 func (c *FakeTraitDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.TraitDefinition, err error) {
+	emptyResult := &v1beta1.TraitDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(traitdefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.TraitDefinition{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(traitdefinitionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.TraitDefinition), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied traitDefinition.
-func (c *FakeTraitDefinitions) Apply(ctx context.Context, traitDefinition *coreoamdevv1beta1.TraitDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.TraitDefinition, err error) {
-	if traitDefinition == nil {
-		return nil, fmt.Errorf("traitDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(traitDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := traitDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("traitDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(traitdefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.TraitDefinition{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.TraitDefinition), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeTraitDefinitions) ApplyStatus(ctx context.Context, traitDefinition *coreoamdevv1beta1.TraitDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.TraitDefinition, err error) {
-	if traitDefinition == nil {
-		return nil, fmt.Errorf("traitDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(traitDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := traitDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("traitDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(traitdefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.TraitDefinition{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.TraitDefinition), err
 }

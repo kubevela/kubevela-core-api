@@ -19,8 +19,8 @@ package v1beta1
 
 import (
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/listers"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -37,25 +37,17 @@ type WorkloadDefinitionLister interface {
 
 // workloadDefinitionLister implements the WorkloadDefinitionLister interface.
 type workloadDefinitionLister struct {
-	indexer cache.Indexer
+	listers.ResourceIndexer[*v1beta1.WorkloadDefinition]
 }
 
 // NewWorkloadDefinitionLister returns a new WorkloadDefinitionLister.
 func NewWorkloadDefinitionLister(indexer cache.Indexer) WorkloadDefinitionLister {
-	return &workloadDefinitionLister{indexer: indexer}
-}
-
-// List lists all WorkloadDefinitions in the indexer.
-func (s *workloadDefinitionLister) List(selector labels.Selector) (ret []*v1beta1.WorkloadDefinition, err error) {
-	err = cache.ListAll(s.indexer, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.WorkloadDefinition))
-	})
-	return ret, err
+	return &workloadDefinitionLister{listers.New[*v1beta1.WorkloadDefinition](indexer, v1beta1.Resource("workloaddefinition"))}
 }
 
 // WorkloadDefinitions returns an object that can list and get WorkloadDefinitions.
 func (s *workloadDefinitionLister) WorkloadDefinitions(namespace string) WorkloadDefinitionNamespaceLister {
-	return workloadDefinitionNamespaceLister{indexer: s.indexer, namespace: namespace}
+	return workloadDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.WorkloadDefinition](s.ResourceIndexer, namespace)}
 }
 
 // WorkloadDefinitionNamespaceLister helps list and get WorkloadDefinitions.
@@ -73,26 +65,5 @@ type WorkloadDefinitionNamespaceLister interface {
 // workloadDefinitionNamespaceLister implements the WorkloadDefinitionNamespaceLister
 // interface.
 type workloadDefinitionNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-}
-
-// List lists all WorkloadDefinitions in the indexer for a given namespace.
-func (s workloadDefinitionNamespaceLister) List(selector labels.Selector) (ret []*v1beta1.WorkloadDefinition, err error) {
-	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
-		ret = append(ret, m.(*v1beta1.WorkloadDefinition))
-	})
-	return ret, err
-}
-
-// Get retrieves the WorkloadDefinition from the indexer for a given namespace and name.
-func (s workloadDefinitionNamespaceLister) Get(name string) (*v1beta1.WorkloadDefinition, error) {
-	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.NewNotFound(v1beta1.Resource("workloaddefinition"), name)
-	}
-	return obj.(*v1beta1.WorkloadDefinition), nil
+	listers.ResourceIndexer[*v1beta1.WorkloadDefinition]
 }

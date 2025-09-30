@@ -19,11 +19,8 @@ package fake
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
@@ -43,22 +40,24 @@ var workflowstepdefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("WorkflowS
 
 // Get takes name of the workflowStepDefinition, and returns the corresponding workflowStepDefinition object, and an error if there is any.
 func (c *FakeWorkflowStepDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(workflowstepdefinitionsResource, c.ns, name), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewGetActionWithOptions(workflowstepdefinitionsResource, c.ns, name, options), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkflowStepDefinition), err
 }
 
 // List takes label and field selectors, and returns the list of WorkflowStepDefinitions that match those selectors.
 func (c *FakeWorkflowStepDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.WorkflowStepDefinitionList, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinitionList{}
 	obj, err := c.Fake.
-		Invokes(testing.NewListAction(workflowstepdefinitionsResource, workflowstepdefinitionsKind, c.ns, opts), &v1beta1.WorkflowStepDefinitionList{})
+		Invokes(testing.NewListActionWithOptions(workflowstepdefinitionsResource, workflowstepdefinitionsKind, c.ns, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 
 	label, _, _ := testing.ExtractFromListOptions(opts)
@@ -77,40 +76,43 @@ func (c *FakeWorkflowStepDefinitions) List(ctx context.Context, opts v1.ListOpti
 // Watch returns a watch.Interface that watches the requested workflowStepDefinitions.
 func (c *FakeWorkflowStepDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewWatchAction(workflowstepdefinitionsResource, c.ns, opts))
+		InvokesWatch(testing.NewWatchActionWithOptions(workflowstepdefinitionsResource, c.ns, opts))
 
 }
 
 // Create takes the representation of a workflowStepDefinition and creates it.  Returns the server's representation of the workflowStepDefinition, and an error, if there is any.
 func (c *FakeWorkflowStepDefinitions) Create(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.CreateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(workflowstepdefinitionsResource, c.ns, workflowStepDefinition), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewCreateActionWithOptions(workflowstepdefinitionsResource, c.ns, workflowStepDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkflowStepDefinition), err
 }
 
 // Update takes the representation of a workflowStepDefinition and updates it. Returns the server's representation of the workflowStepDefinition, and an error, if there is any.
 func (c *FakeWorkflowStepDefinitions) Update(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateAction(workflowstepdefinitionsResource, c.ns, workflowStepDefinition), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewUpdateActionWithOptions(workflowstepdefinitionsResource, c.ns, workflowStepDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkflowStepDefinition), err
 }
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeWorkflowStepDefinitions) UpdateStatus(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*v1beta1.WorkflowStepDefinition, error) {
+func (c *FakeWorkflowStepDefinitions) UpdateStatus(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceAction(workflowstepdefinitionsResource, "status", c.ns, workflowStepDefinition), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewUpdateSubresourceActionWithOptions(workflowstepdefinitionsResource, "status", c.ns, workflowStepDefinition, opts), emptyResult)
 
 	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkflowStepDefinition), err
 }
@@ -125,7 +127,7 @@ func (c *FakeWorkflowStepDefinitions) Delete(ctx context.Context, name string, o
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeWorkflowStepDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionAction(workflowstepdefinitionsResource, c.ns, listOpts)
+	action := testing.NewDeleteCollectionActionWithOptions(workflowstepdefinitionsResource, c.ns, opts, listOpts)
 
 	_, err := c.Fake.Invokes(action, &v1beta1.WorkflowStepDefinitionList{})
 	return err
@@ -133,56 +135,12 @@ func (c *FakeWorkflowStepDefinitions) DeleteCollection(ctx context.Context, opts
 
 // Patch applies the patch and returns the patched workflowStepDefinition.
 func (c *FakeWorkflowStepDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkflowStepDefinition, err error) {
+	emptyResult := &v1beta1.WorkflowStepDefinition{}
 	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, name, pt, data, subresources...), &v1beta1.WorkflowStepDefinition{})
+		Invokes(testing.NewPatchSubresourceActionWithOptions(workflowstepdefinitionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
 
 	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.WorkflowStepDefinition), err
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied workflowStepDefinition.
-func (c *FakeWorkflowStepDefinitions) Apply(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	if workflowStepDefinition == nil {
-		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(workflowStepDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := workflowStepDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, *name, types.ApplyPatchType, data), &v1beta1.WorkflowStepDefinition{})
-
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*v1beta1.WorkflowStepDefinition), err
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *FakeWorkflowStepDefinitions) ApplyStatus(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.WorkflowStepDefinition, err error) {
-	if workflowStepDefinition == nil {
-		return nil, fmt.Errorf("workflowStepDefinition provided to Apply must not be nil")
-	}
-	data, err := json.Marshal(workflowStepDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := workflowStepDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("workflowStepDefinition.Name must be provided to Apply")
-	}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceAction(workflowstepdefinitionsResource, c.ns, *name, types.ApplyPatchType, data, "status"), &v1beta1.WorkflowStepDefinition{})
-
-	if obj == nil {
-		return nil, err
+		return emptyResult, err
 	}
 	return obj.(*v1beta1.WorkflowStepDefinition), err
 }

@@ -19,17 +19,13 @@ package v1beta1
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
-	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	gentype "k8s.io/client-go/gentype"
 )
 
 // ComponentDefinitionsGetter has a method to return a ComponentDefinitionInterface.
@@ -42,6 +38,7 @@ type ComponentDefinitionsGetter interface {
 type ComponentDefinitionInterface interface {
 	Create(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.CreateOptions) (*v1beta1.ComponentDefinition, error)
 	Update(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (*v1beta1.ComponentDefinition, error)
+	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
 	UpdateStatus(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (*v1beta1.ComponentDefinition, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
@@ -49,207 +46,23 @@ type ComponentDefinitionInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ComponentDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ComponentDefinition, err error)
-	Apply(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error)
-	ApplyStatus(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error)
 	ComponentDefinitionExpansion
 }
 
 // componentDefinitions implements ComponentDefinitionInterface
 type componentDefinitions struct {
-	client rest.Interface
-	ns     string
+	*gentype.ClientWithList[*v1beta1.ComponentDefinition, *v1beta1.ComponentDefinitionList]
 }
 
 // newComponentDefinitions returns a ComponentDefinitions
 func newComponentDefinitions(c *CoreV1beta1Client, namespace string) *componentDefinitions {
 	return &componentDefinitions{
-		client: c.RESTClient(),
-		ns:     namespace,
+		gentype.NewClientWithList[*v1beta1.ComponentDefinition, *v1beta1.ComponentDefinitionList](
+			"componentdefinitions",
+			c.RESTClient(),
+			scheme.ParameterCodec,
+			namespace,
+			func() *v1beta1.ComponentDefinition { return &v1beta1.ComponentDefinition{} },
+			func() *v1beta1.ComponentDefinitionList { return &v1beta1.ComponentDefinitionList{} }),
 	}
-}
-
-// Get takes name of the componentDefinition, and returns the corresponding componentDefinition object, and an error if there is any.
-func (c *componentDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ComponentDefinition, err error) {
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(name).
-		VersionedParams(&options, scheme.ParameterCodec).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// List takes label and field selectors, and returns the list of ComponentDefinitions that match those selectors.
-func (c *componentDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ComponentDefinitionList, err error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	result = &v1beta1.ComponentDefinitionList{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Watch returns a watch.Interface that watches the requested componentDefinitions.
-func (c *componentDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	opts.Watch = true
-	return c.client.Get().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Watch(ctx)
-}
-
-// Create takes the representation of a componentDefinition and creates it.  Returns the server's representation of the componentDefinition, and an error, if there is any.
-func (c *componentDefinitions) Create(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.CreateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Post().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(componentDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Update takes the representation of a componentDefinition and updates it. Returns the server's representation of the componentDefinition, and an error, if there is any.
-func (c *componentDefinitions) Update(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(componentDefinition.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(componentDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *componentDefinitions) UpdateStatus(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(componentDefinition.Name).
-		SubResource("status").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(componentDefinition).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Delete takes name of the componentDefinition and deletes it. Returns an error if one occurs.
-func (c *componentDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(name).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *componentDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	var timeout time.Duration
-	if listOpts.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
-	}
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		VersionedParams(&listOpts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// Patch applies the patch and returns the patched componentDefinition.
-func (c *componentDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ComponentDefinition, err error) {
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Patch(pt).
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(name).
-		SubResource(subresources...).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied componentDefinition.
-func (c *componentDefinitions) Apply(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error) {
-	if componentDefinition == nil {
-		return nil, fmt.Errorf("componentDefinition provided to Apply must not be nil")
-	}
-	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(componentDefinition)
-	if err != nil {
-		return nil, err
-	}
-	name := componentDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("componentDefinition.Name must be provided to Apply")
-	}
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Patch(types.ApplyPatchType).
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(*name).
-		VersionedParams(&patchOpts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// ApplyStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating ApplyStatus().
-func (c *componentDefinitions) ApplyStatus(ctx context.Context, componentDefinition *coreoamdevv1beta1.ComponentDefinitionApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ComponentDefinition, err error) {
-	if componentDefinition == nil {
-		return nil, fmt.Errorf("componentDefinition provided to Apply must not be nil")
-	}
-	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(componentDefinition)
-	if err != nil {
-		return nil, err
-	}
-
-	name := componentDefinition.Name
-	if name == nil {
-		return nil, fmt.Errorf("componentDefinition.Name must be provided to Apply")
-	}
-
-	result = &v1beta1.ComponentDefinition{}
-	err = c.client.Patch(types.ApplyPatchType).
-		Namespace(c.ns).
-		Resource("componentdefinitions").
-		Name(*name).
-		SubResource("status").
-		VersionedParams(&patchOpts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
 }

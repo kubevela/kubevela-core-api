@@ -19,17 +19,13 @@ package v1beta1
 
 import (
 	"context"
-	json "encoding/json"
-	"fmt"
-	"time"
 
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/applyconfiguration/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
-	rest "k8s.io/client-go/rest"
+	gentype "k8s.io/client-go/gentype"
 )
 
 // ResourceTrackersGetter has a method to return a ResourceTrackerInterface.
@@ -48,160 +44,23 @@ type ResourceTrackerInterface interface {
 	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ResourceTrackerList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
 	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error)
-	Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error)
 	ResourceTrackerExpansion
 }
 
 // resourceTrackers implements ResourceTrackerInterface
 type resourceTrackers struct {
-	client rest.Interface
-	ns     string
+	*gentype.ClientWithList[*v1beta1.ResourceTracker, *v1beta1.ResourceTrackerList]
 }
 
 // newResourceTrackers returns a ResourceTrackers
 func newResourceTrackers(c *CoreV1beta1Client, namespace string) *resourceTrackers {
 	return &resourceTrackers{
-		client: c.RESTClient(),
-		ns:     namespace,
+		gentype.NewClientWithList[*v1beta1.ResourceTracker, *v1beta1.ResourceTrackerList](
+			"resourcetrackers",
+			c.RESTClient(),
+			scheme.ParameterCodec,
+			namespace,
+			func() *v1beta1.ResourceTracker { return &v1beta1.ResourceTracker{} },
+			func() *v1beta1.ResourceTrackerList { return &v1beta1.ResourceTrackerList{} }),
 	}
-}
-
-// Get takes name of the resourceTracker, and returns the corresponding resourceTracker object, and an error if there is any.
-func (c *resourceTrackers) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ResourceTracker, err error) {
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(name).
-		VersionedParams(&options, scheme.ParameterCodec).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// List takes label and field selectors, and returns the list of ResourceTrackers that match those selectors.
-func (c *resourceTrackers) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ResourceTrackerList, err error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	result = &v1beta1.ResourceTrackerList{}
-	err = c.client.Get().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Watch returns a watch.Interface that watches the requested resourceTrackers.
-func (c *resourceTrackers) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
-	var timeout time.Duration
-	if opts.TimeoutSeconds != nil {
-		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
-	}
-	opts.Watch = true
-	return c.client.Get().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Watch(ctx)
-}
-
-// Create takes the representation of a resourceTracker and creates it.  Returns the server's representation of the resourceTracker, and an error, if there is any.
-func (c *resourceTrackers) Create(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.CreateOptions) (result *v1beta1.ResourceTracker, err error) {
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Post().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(resourceTracker).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Update takes the representation of a resourceTracker and updates it. Returns the server's representation of the resourceTracker, and an error, if there is any.
-func (c *resourceTrackers) Update(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (result *v1beta1.ResourceTracker, err error) {
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Put().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(resourceTracker.Name).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(resourceTracker).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Delete takes name of the resourceTracker and deletes it. Returns an error if one occurs.
-func (c *resourceTrackers) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(name).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *resourceTrackers) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	var timeout time.Duration
-	if listOpts.TimeoutSeconds != nil {
-		timeout = time.Duration(*listOpts.TimeoutSeconds) * time.Second
-	}
-	return c.client.Delete().
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		VersionedParams(&listOpts, scheme.ParameterCodec).
-		Timeout(timeout).
-		Body(&opts).
-		Do(ctx).
-		Error()
-}
-
-// Patch applies the patch and returns the patched resourceTracker.
-func (c *resourceTrackers) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error) {
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Patch(pt).
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(name).
-		SubResource(subresources...).
-		VersionedParams(&opts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
-}
-
-// Apply takes the given apply declarative configuration, applies it and returns the applied resourceTracker.
-func (c *resourceTrackers) Apply(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTrackerApplyConfiguration, opts v1.ApplyOptions) (result *v1beta1.ResourceTracker, err error) {
-	if resourceTracker == nil {
-		return nil, fmt.Errorf("resourceTracker provided to Apply must not be nil")
-	}
-	patchOpts := opts.ToPatchOptions()
-	data, err := json.Marshal(resourceTracker)
-	if err != nil {
-		return nil, err
-	}
-	name := resourceTracker.Name
-	if name == nil {
-		return nil, fmt.Errorf("resourceTracker.Name must be provided to Apply")
-	}
-	result = &v1beta1.ResourceTracker{}
-	err = c.client.Patch(types.ApplyPatchType).
-		Namespace(c.ns).
-		Resource("resourcetrackers").
-		Name(*name).
-		VersionedParams(&patchOpts, scheme.ParameterCodec).
-		Body(data).
-		Do(ctx).
-		Into(result)
-	return
 }
