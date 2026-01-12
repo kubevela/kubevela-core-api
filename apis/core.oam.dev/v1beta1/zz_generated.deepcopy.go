@@ -21,7 +21,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kubevela/workflow/api/v1alpha1"
+	wfTypesv1alpha1 "github.com/kubevela/pkg/apis/oam/v1alpha1"
 	"github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/common"
 	core_oam_devv1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -208,7 +208,7 @@ func (in *ApplicationRevisionCompressibleFields) DeepCopyInto(out *ApplicationRe
 	}
 	if in.Workflow != nil {
 		in, out := &in.Workflow, &out.Workflow
-		*out = new(v1alpha1.Workflow)
+		*out = new(wfTypesv1alpha1.Workflow)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.ReferredObjects != nil {
@@ -913,12 +913,12 @@ func (in *Workflow) DeepCopyInto(out *Workflow) {
 	*out = *in
 	if in.Mode != nil {
 		in, out := &in.Mode, &out.Mode
-		*out = new(v1alpha1.WorkflowExecuteMode)
+		*out = new(wfTypesv1alpha1.WorkflowExecuteMode)
 		**out = **in
 	}
 	if in.Steps != nil {
 		in, out := &in.Steps, &out.Steps
-		*out = make([]v1alpha1.WorkflowStep, len(*in))
+		*out = make([]wfTypesv1alpha1.WorkflowStep, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
