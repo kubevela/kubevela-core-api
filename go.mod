@@ -156,7 +156,7 @@ require (
 replace (
 	github.com/kubevela/pkg => github.com/anishbista60/pkg v0.0.0-20260722123526-34480bf014a5
 	github.com/kubevela/terraform-controller => github.com/anishbista60/terraform-controller v0.0.0-20260717172336-85acea9b461b
-	github.com/kubevela/workflow => github.com/anishbista60/workflow v0.0.0-20260723125451-c248e82863ea
+	github.com/kubevela/workflow => github.com/anishbista60/workflow v0.0.0-20260724073335-b571dbc1074f
 	github.com/oam-dev/cluster-gateway => github.com/anishbista60/cluster-gateway v0.0.0-20260722123514-9f9fb7c6e81d
 	sigs.k8s.io/apiserver-runtime => github.com/anishbista60/apiserver-runtime v1.1.2-0.20260722123624-38ed2f9bdeb6
 )

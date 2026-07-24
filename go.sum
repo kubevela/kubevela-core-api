@@ -16,8 +16,8 @@ github.com/anishbista60/cluster-gateway v0.0.0-20260722123514-9f9fb7c6e81d h1:HX
 github.com/anishbista60/cluster-gateway v0.0.0-20260722123514-9f9fb7c6e81d/go.mod h1:MlH3KlWgdJxGcQlfmelBGpSyen40AkpZ9yYfhE0H/0c=
 github.com/anishbista60/pkg v0.0.0-20260722123526-34480bf014a5 h1:ODN4BNBIL9XzpaFtTz3Z9ywH9rdnCYnaBX6Jlr+IJGY=
 github.com/anishbista60/pkg v0.0.0-20260722123526-34480bf014a5/go.mod h1:hyl1GtqxkEHlLwIv9BCrcowYOYrTc4U1GFqb2zdGL90=
-github.com/anishbista60/workflow v0.0.0-20260723125451-c248e82863ea h1:GbwG5InIvCshuZY3Eh1lU6bjGtz6CkpmdVslRPAT3cU=
-github.com/anishbista60/workflow v0.0.0-20260723125451-c248e82863ea/go.mod h1:hRbeh5+LW2taNEhs9ZCfdfkDHIQ/FW2eszxJm4ux9mQ=
+github.com/anishbista60/workflow v0.0.0-20260724073335-b571dbc1074f h1:mKHIoM7Hp3i9tuKfkHM3RPvU9ONP1y6AlWNUtbR8qGg=
+github.com/anishbista60/workflow v0.0.0-20260724073335-b571dbc1074f/go.mod h1:of4TWbPCMhiJ4vNKdlr1udO8OOrBEJmLOXjT1L/TYuk=
 github.com/antlr4-go/antlr/v4 v4.13.1 h1:SqQKkuVZ+zWkMMNkjy5FZe5mr5WURWnlpmOuzYWrPrQ=
 github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmOABFgjdkM7Nw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
