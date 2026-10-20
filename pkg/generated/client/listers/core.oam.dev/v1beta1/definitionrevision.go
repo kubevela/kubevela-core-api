@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // DefinitionRevisionLister helps list DefinitionRevisions.
@@ -29,7 +29,7 @@ import (
 type DefinitionRevisionLister interface {
 	// List lists all DefinitionRevisions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DefinitionRevision, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.DefinitionRevision, err error)
 	// DefinitionRevisions returns an object that can list and get DefinitionRevisions.
 	DefinitionRevisions(namespace string) DefinitionRevisionNamespaceLister
 	DefinitionRevisionListerExpansion
@@ -37,17 +37,17 @@ type DefinitionRevisionLister interface {
 
 // definitionRevisionLister implements the DefinitionRevisionLister interface.
 type definitionRevisionLister struct {
-	listers.ResourceIndexer[*v1beta1.DefinitionRevision]
+	listers.ResourceIndexer[*coreoamdevv1beta1.DefinitionRevision]
 }
 
 // NewDefinitionRevisionLister returns a new DefinitionRevisionLister.
 func NewDefinitionRevisionLister(indexer cache.Indexer) DefinitionRevisionLister {
-	return &definitionRevisionLister{listers.New[*v1beta1.DefinitionRevision](indexer, v1beta1.Resource("definitionrevision"))}
+	return &definitionRevisionLister{listers.New[*coreoamdevv1beta1.DefinitionRevision](indexer, coreoamdevv1beta1.Resource("definitionrevision"))}
 }
 
 // DefinitionRevisions returns an object that can list and get DefinitionRevisions.
 func (s *definitionRevisionLister) DefinitionRevisions(namespace string) DefinitionRevisionNamespaceLister {
-	return definitionRevisionNamespaceLister{listers.NewNamespaced[*v1beta1.DefinitionRevision](s.ResourceIndexer, namespace)}
+	return definitionRevisionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.DefinitionRevision](s.ResourceIndexer, namespace)}
 }
 
 // DefinitionRevisionNamespaceLister helps list and get DefinitionRevisions.
@@ -55,15 +55,15 @@ func (s *definitionRevisionLister) DefinitionRevisions(namespace string) Definit
 type DefinitionRevisionNamespaceLister interface {
 	// List lists all DefinitionRevisions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DefinitionRevision, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.DefinitionRevision, err error)
 	// Get retrieves the DefinitionRevision from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.DefinitionRevision, error)
+	Get(name string) (*coreoamdevv1beta1.DefinitionRevision, error)
 	DefinitionRevisionNamespaceListerExpansion
 }
 
 // definitionRevisionNamespaceLister implements the DefinitionRevisionNamespaceLister
 // interface.
 type definitionRevisionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.DefinitionRevision]
+	listers.ResourceIndexer[*coreoamdevv1beta1.DefinitionRevision]
 }

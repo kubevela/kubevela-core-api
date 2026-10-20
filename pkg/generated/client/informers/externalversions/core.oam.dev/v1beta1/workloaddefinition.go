@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // WorkloadDefinitionInformer provides access to a shared informer and lister for
-// WorkloadDefinitions.
+// WorkloadDefinitions. Prefer using the type-safe variant (see [TypedWorkloadDefinitionInformer]).
 type WorkloadDefinitionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.WorkloadDefinitionLister
+	Lister() coreoamdevv1beta1.WorkloadDefinitionLister
 }
+
+// TypedWorkloadDefinitionInformer provides access to a shared informer and lister for
+// WorkloadDefinitions, including the type-safe TypedInformer variant.
+// It is a superset of WorkloadDefinitionInformer.
+type TypedWorkloadDefinitionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() WorkloadDefinitionIndexInformer
+	Lister() coreoamdevv1beta1.WorkloadDefinitionLister
+}
+
+// WorkloadDefinitionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type WorkloadDefinitionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkloadDefinition]
+
+// WorkloadDefinitionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for WorkloadDefinition.
+type WorkloadDefinitionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.WorkloadDefinition]
+
+// WorkloadDefinitionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for WorkloadDefinition.
+type WorkloadDefinitionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.WorkloadDefinition]
+
+// WorkloadDefinitionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for WorkloadDefinition.
+type WorkloadDefinitionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.WorkloadDefinition]
+
+// WorkloadDefinitionIndexers is a specialization of [cache.TypedIndexers] for WorkloadDefinition.
+type WorkloadDefinitionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.WorkloadDefinition]
+
+// DeletedWorkloadDefinition is a specialization of [cache.DeletedObject] for WorkloadDefinition.
+type DeletedWorkloadDefinition = cache.DeletedObject[*apiscoreoamdevv1beta1.WorkloadDefinition]
 
 type workloadDefinitionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type workloadDefinitionInformer struct {
 // NewWorkloadDefinitionInformer constructs a new informer for WorkloadDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedWorkloadDefinitionInformer]).
 func NewWorkloadDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredWorkloadDefinitionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewWorkloadDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedWorkloadDefinitionInformer constructs a new informer for WorkloadDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedWorkloadDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers WorkloadDefinitionIndexers) WorkloadDefinitionIndexInformer {
+	return NewTypedWorkloadDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredWorkloadDefinitionInformer constructs a new informer for WorkloadDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredWorkloadDefinitionInformer]).
 func NewFilteredWorkloadDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedWorkloadDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredWorkloadDefinitionInformer constructs a new informer for WorkloadDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredWorkloadDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers WorkloadDefinitionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) WorkloadDefinitionIndexInformer {
+	return NewTypedWorkloadDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewWorkloadDefinitionInformerWithOptions constructs a new informer for WorkloadDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedWorkloadDefinitionInformerWithOptions]).
+func NewWorkloadDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedWorkloadDefinitionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedWorkloadDefinitionInformerWithOptions constructs a new informer for WorkloadDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedWorkloadDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) WorkloadDefinitionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "workloaddefinitions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkloadDefinition](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().WorkloadDefinitions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().WorkloadDefinitions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().WorkloadDefinitions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().WorkloadDefinitions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().WorkloadDefinitions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().WorkloadDefinitions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.WorkloadDefinition{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.WorkloadDefinition{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *workloadDefinitionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredWorkloadDefinitionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedWorkloadDefinitionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *workloadDefinitionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.WorkloadDefinition{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *workloadDefinitionInformer) Lister() v1beta1.WorkloadDefinitionLister {
-	return v1beta1.NewWorkloadDefinitionLister(f.Informer().GetIndexer())
+func (f *workloadDefinitionInformer) TypedInformer() WorkloadDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkloadDefinition](f.factory.InformerFor(&apiscoreoamdevv1beta1.WorkloadDefinition{}, f.defaultInformer))
+}
+
+func (f *workloadDefinitionInformer) Lister() coreoamdevv1beta1.WorkloadDefinitionLister {
+	return coreoamdevv1beta1.NewWorkloadDefinitionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedWorkloadDefinitionInformer converts an untyped informer into a TypedWorkloadDefinitionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *WorkloadDefinition. If that is not the case, calling type-safe methods of the returned
+// TypedWorkloadDefinitionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedWorkloadDefinitionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedWorkloadDefinitionInformer(informer WorkloadDefinitionInformer) TypedWorkloadDefinitionInformer {
+	if informer, ok := informer.(TypedWorkloadDefinitionInformer); ok {
+		return informer
+	}
+	return &workloadDefinitionTypedInformerAdapter{informer}
+}
+
+type workloadDefinitionTypedInformerAdapter struct {
+	WorkloadDefinitionInformer
+}
+
+func (a *workloadDefinitionTypedInformerAdapter) TypedInformer() WorkloadDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkloadDefinition](a.Informer())
+}
+
+// ToWorkloadDefinitionIndexInformer converts an untyped informer into a WorkloadDefinitionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *WorkloadDefinition. If that is not the case, calling type-safe methods of the returned
+// WorkloadDefinitionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a WorkloadDefinitionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToWorkloadDefinitionIndexInformer(informer cache.SharedIndexInformer) WorkloadDefinitionIndexInformer {
+	if informer, ok := informer.(WorkloadDefinitionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkloadDefinition](informer)
 }

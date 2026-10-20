@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // WorkflowStepDefinitionLister helps list WorkflowStepDefinitions.
@@ -29,7 +29,7 @@ import (
 type WorkflowStepDefinitionLister interface {
 	// List lists all WorkflowStepDefinitions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.WorkflowStepDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.WorkflowStepDefinition, err error)
 	// WorkflowStepDefinitions returns an object that can list and get WorkflowStepDefinitions.
 	WorkflowStepDefinitions(namespace string) WorkflowStepDefinitionNamespaceLister
 	WorkflowStepDefinitionListerExpansion
@@ -37,17 +37,17 @@ type WorkflowStepDefinitionLister interface {
 
 // workflowStepDefinitionLister implements the WorkflowStepDefinitionLister interface.
 type workflowStepDefinitionLister struct {
-	listers.ResourceIndexer[*v1beta1.WorkflowStepDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.WorkflowStepDefinition]
 }
 
 // NewWorkflowStepDefinitionLister returns a new WorkflowStepDefinitionLister.
 func NewWorkflowStepDefinitionLister(indexer cache.Indexer) WorkflowStepDefinitionLister {
-	return &workflowStepDefinitionLister{listers.New[*v1beta1.WorkflowStepDefinition](indexer, v1beta1.Resource("workflowstepdefinition"))}
+	return &workflowStepDefinitionLister{listers.New[*coreoamdevv1beta1.WorkflowStepDefinition](indexer, coreoamdevv1beta1.Resource("workflowstepdefinition"))}
 }
 
 // WorkflowStepDefinitions returns an object that can list and get WorkflowStepDefinitions.
 func (s *workflowStepDefinitionLister) WorkflowStepDefinitions(namespace string) WorkflowStepDefinitionNamespaceLister {
-	return workflowStepDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.WorkflowStepDefinition](s.ResourceIndexer, namespace)}
+	return workflowStepDefinitionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.WorkflowStepDefinition](s.ResourceIndexer, namespace)}
 }
 
 // WorkflowStepDefinitionNamespaceLister helps list and get WorkflowStepDefinitions.
@@ -55,15 +55,15 @@ func (s *workflowStepDefinitionLister) WorkflowStepDefinitions(namespace string)
 type WorkflowStepDefinitionNamespaceLister interface {
 	// List lists all WorkflowStepDefinitions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.WorkflowStepDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.WorkflowStepDefinition, err error)
 	// Get retrieves the WorkflowStepDefinition from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.WorkflowStepDefinition, error)
+	Get(name string) (*coreoamdevv1beta1.WorkflowStepDefinition, error)
 	WorkflowStepDefinitionNamespaceListerExpansion
 }
 
 // workflowStepDefinitionNamespaceLister implements the WorkflowStepDefinitionNamespaceLister
 // interface.
 type workflowStepDefinitionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.WorkflowStepDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.WorkflowStepDefinition]
 }

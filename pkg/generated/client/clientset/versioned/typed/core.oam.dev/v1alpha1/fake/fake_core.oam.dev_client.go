@@ -28,7 +28,7 @@ type FakeCoreV1alpha1 struct {
 }
 
 func (c *FakeCoreV1alpha1) Policies(namespace string) v1alpha1.PolicyInterface {
-	return &FakePolicies{c, namespace}
+	return newFakePolicies(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // TraitDefinitionLister helps list TraitDefinitions.
@@ -29,7 +29,7 @@ import (
 type TraitDefinitionLister interface {
 	// List lists all TraitDefinitions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.TraitDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.TraitDefinition, err error)
 	// TraitDefinitions returns an object that can list and get TraitDefinitions.
 	TraitDefinitions(namespace string) TraitDefinitionNamespaceLister
 	TraitDefinitionListerExpansion
@@ -37,17 +37,17 @@ type TraitDefinitionLister interface {
 
 // traitDefinitionLister implements the TraitDefinitionLister interface.
 type traitDefinitionLister struct {
-	listers.ResourceIndexer[*v1beta1.TraitDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.TraitDefinition]
 }
 
 // NewTraitDefinitionLister returns a new TraitDefinitionLister.
 func NewTraitDefinitionLister(indexer cache.Indexer) TraitDefinitionLister {
-	return &traitDefinitionLister{listers.New[*v1beta1.TraitDefinition](indexer, v1beta1.Resource("traitdefinition"))}
+	return &traitDefinitionLister{listers.New[*coreoamdevv1beta1.TraitDefinition](indexer, coreoamdevv1beta1.Resource("traitdefinition"))}
 }
 
 // TraitDefinitions returns an object that can list and get TraitDefinitions.
 func (s *traitDefinitionLister) TraitDefinitions(namespace string) TraitDefinitionNamespaceLister {
-	return traitDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.TraitDefinition](s.ResourceIndexer, namespace)}
+	return traitDefinitionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.TraitDefinition](s.ResourceIndexer, namespace)}
 }
 
 // TraitDefinitionNamespaceLister helps list and get TraitDefinitions.
@@ -55,15 +55,15 @@ func (s *traitDefinitionLister) TraitDefinitions(namespace string) TraitDefiniti
 type TraitDefinitionNamespaceLister interface {
 	// List lists all TraitDefinitions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.TraitDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.TraitDefinition, err error)
 	// Get retrieves the TraitDefinition from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.TraitDefinition, error)
+	Get(name string) (*coreoamdevv1beta1.TraitDefinition, error)
 	TraitDefinitionNamespaceListerExpansion
 }
 
 // traitDefinitionNamespaceLister implements the TraitDefinitionNamespaceLister
 // interface.
 type traitDefinitionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.TraitDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.TraitDefinition]
 }

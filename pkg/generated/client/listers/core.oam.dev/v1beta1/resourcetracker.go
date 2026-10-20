@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // ResourceTrackerLister helps list ResourceTrackers.
@@ -29,7 +29,7 @@ import (
 type ResourceTrackerLister interface {
 	// List lists all ResourceTrackers in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ResourceTracker, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ResourceTracker, err error)
 	// ResourceTrackers returns an object that can list and get ResourceTrackers.
 	ResourceTrackers(namespace string) ResourceTrackerNamespaceLister
 	ResourceTrackerListerExpansion
@@ -37,17 +37,17 @@ type ResourceTrackerLister interface {
 
 // resourceTrackerLister implements the ResourceTrackerLister interface.
 type resourceTrackerLister struct {
-	listers.ResourceIndexer[*v1beta1.ResourceTracker]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ResourceTracker]
 }
 
 // NewResourceTrackerLister returns a new ResourceTrackerLister.
 func NewResourceTrackerLister(indexer cache.Indexer) ResourceTrackerLister {
-	return &resourceTrackerLister{listers.New[*v1beta1.ResourceTracker](indexer, v1beta1.Resource("resourcetracker"))}
+	return &resourceTrackerLister{listers.New[*coreoamdevv1beta1.ResourceTracker](indexer, coreoamdevv1beta1.Resource("resourcetracker"))}
 }
 
 // ResourceTrackers returns an object that can list and get ResourceTrackers.
 func (s *resourceTrackerLister) ResourceTrackers(namespace string) ResourceTrackerNamespaceLister {
-	return resourceTrackerNamespaceLister{listers.NewNamespaced[*v1beta1.ResourceTracker](s.ResourceIndexer, namespace)}
+	return resourceTrackerNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.ResourceTracker](s.ResourceIndexer, namespace)}
 }
 
 // ResourceTrackerNamespaceLister helps list and get ResourceTrackers.
@@ -55,15 +55,15 @@ func (s *resourceTrackerLister) ResourceTrackers(namespace string) ResourceTrack
 type ResourceTrackerNamespaceLister interface {
 	// List lists all ResourceTrackers in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ResourceTracker, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ResourceTracker, err error)
 	// Get retrieves the ResourceTracker from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.ResourceTracker, error)
+	Get(name string) (*coreoamdevv1beta1.ResourceTracker, error)
 	ResourceTrackerNamespaceListerExpansion
 }
 
 // resourceTrackerNamespaceLister implements the ResourceTrackerNamespaceLister
 // interface.
 type resourceTrackerNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.ResourceTracker]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ResourceTracker]
 }

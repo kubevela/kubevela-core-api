@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,31 +36,32 @@ type DefinitionRevisionsGetter interface {
 
 // DefinitionRevisionInterface has methods to work with DefinitionRevision resources.
 type DefinitionRevisionInterface interface {
-	Create(ctx context.Context, definitionRevision *v1beta1.DefinitionRevision, opts v1.CreateOptions) (*v1beta1.DefinitionRevision, error)
-	Update(ctx context.Context, definitionRevision *v1beta1.DefinitionRevision, opts v1.UpdateOptions) (*v1beta1.DefinitionRevision, error)
+	Create(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevision, opts v1.CreateOptions) (*coreoamdevv1beta1.DefinitionRevision, error)
+	Update(ctx context.Context, definitionRevision *coreoamdevv1beta1.DefinitionRevision, opts v1.UpdateOptions) (*coreoamdevv1beta1.DefinitionRevision, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.DefinitionRevision, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.DefinitionRevisionList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.DefinitionRevision, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.DefinitionRevisionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.DefinitionRevision, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.DefinitionRevision, err error)
 	DefinitionRevisionExpansion
 }
 
 // definitionRevisions implements DefinitionRevisionInterface
 type definitionRevisions struct {
-	*gentype.ClientWithList[*v1beta1.DefinitionRevision, *v1beta1.DefinitionRevisionList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.DefinitionRevision, *coreoamdevv1beta1.DefinitionRevisionList]
 }
 
 // newDefinitionRevisions returns a DefinitionRevisions
 func newDefinitionRevisions(c *CoreV1beta1Client, namespace string) *definitionRevisions {
 	return &definitionRevisions{
-		gentype.NewClientWithList[*v1beta1.DefinitionRevision, *v1beta1.DefinitionRevisionList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.DefinitionRevision, *coreoamdevv1beta1.DefinitionRevisionList](
 			"definitionrevisions",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.DefinitionRevision { return &v1beta1.DefinitionRevision{} },
-			func() *v1beta1.DefinitionRevisionList { return &v1beta1.DefinitionRevisionList{} }),
+			func() *coreoamdevv1beta1.DefinitionRevision { return &coreoamdevv1beta1.DefinitionRevision{} },
+			func() *coreoamdevv1beta1.DefinitionRevisionList { return &coreoamdevv1beta1.DefinitionRevisionList{} },
+		),
 	}
 }

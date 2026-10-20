@@ -24,23 +24,25 @@ import (
 // Interface provides access to all the informers in this group version.
 type Interface interface {
 	// Applications returns a ApplicationInformer.
-	Applications() ApplicationInformer
+	Applications() TypedApplicationInformer
 	// ApplicationRevisions returns a ApplicationRevisionInformer.
-	ApplicationRevisions() ApplicationRevisionInformer
+	ApplicationRevisions() TypedApplicationRevisionInformer
 	// ComponentDefinitions returns a ComponentDefinitionInformer.
-	ComponentDefinitions() ComponentDefinitionInformer
+	ComponentDefinitions() TypedComponentDefinitionInformer
 	// DefinitionRevisions returns a DefinitionRevisionInformer.
-	DefinitionRevisions() DefinitionRevisionInformer
+	DefinitionRevisions() TypedDefinitionRevisionInformer
 	// PolicyDefinitions returns a PolicyDefinitionInformer.
-	PolicyDefinitions() PolicyDefinitionInformer
+	PolicyDefinitions() TypedPolicyDefinitionInformer
 	// ResourceTrackers returns a ResourceTrackerInformer.
-	ResourceTrackers() ResourceTrackerInformer
+	ResourceTrackers() TypedResourceTrackerInformer
+	// SourceDefinitions returns a SourceDefinitionInformer.
+	SourceDefinitions() TypedSourceDefinitionInformer
 	// TraitDefinitions returns a TraitDefinitionInformer.
-	TraitDefinitions() TraitDefinitionInformer
+	TraitDefinitions() TypedTraitDefinitionInformer
 	// WorkflowStepDefinitions returns a WorkflowStepDefinitionInformer.
-	WorkflowStepDefinitions() WorkflowStepDefinitionInformer
+	WorkflowStepDefinitions() TypedWorkflowStepDefinitionInformer
 	// WorkloadDefinitions returns a WorkloadDefinitionInformer.
-	WorkloadDefinitions() WorkloadDefinitionInformer
+	WorkloadDefinitions() TypedWorkloadDefinitionInformer
 }
 
 type version struct {
@@ -54,47 +56,52 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// Applications returns a ApplicationInformer.
-func (v *version) Applications() ApplicationInformer {
+// Applications returns a TypedApplicationInformer.
+func (v *version) Applications() TypedApplicationInformer {
 	return &applicationInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// ApplicationRevisions returns a ApplicationRevisionInformer.
-func (v *version) ApplicationRevisions() ApplicationRevisionInformer {
+// ApplicationRevisions returns a TypedApplicationRevisionInformer.
+func (v *version) ApplicationRevisions() TypedApplicationRevisionInformer {
 	return &applicationRevisionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// ComponentDefinitions returns a ComponentDefinitionInformer.
-func (v *version) ComponentDefinitions() ComponentDefinitionInformer {
+// ComponentDefinitions returns a TypedComponentDefinitionInformer.
+func (v *version) ComponentDefinitions() TypedComponentDefinitionInformer {
 	return &componentDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// DefinitionRevisions returns a DefinitionRevisionInformer.
-func (v *version) DefinitionRevisions() DefinitionRevisionInformer {
+// DefinitionRevisions returns a TypedDefinitionRevisionInformer.
+func (v *version) DefinitionRevisions() TypedDefinitionRevisionInformer {
 	return &definitionRevisionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// PolicyDefinitions returns a PolicyDefinitionInformer.
-func (v *version) PolicyDefinitions() PolicyDefinitionInformer {
+// PolicyDefinitions returns a TypedPolicyDefinitionInformer.
+func (v *version) PolicyDefinitions() TypedPolicyDefinitionInformer {
 	return &policyDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// ResourceTrackers returns a ResourceTrackerInformer.
-func (v *version) ResourceTrackers() ResourceTrackerInformer {
+// ResourceTrackers returns a TypedResourceTrackerInformer.
+func (v *version) ResourceTrackers() TypedResourceTrackerInformer {
 	return &resourceTrackerInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// TraitDefinitions returns a TraitDefinitionInformer.
-func (v *version) TraitDefinitions() TraitDefinitionInformer {
+// SourceDefinitions returns a TypedSourceDefinitionInformer.
+func (v *version) SourceDefinitions() TypedSourceDefinitionInformer {
+	return &sourceDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// TraitDefinitions returns a TypedTraitDefinitionInformer.
+func (v *version) TraitDefinitions() TypedTraitDefinitionInformer {
 	return &traitDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// WorkflowStepDefinitions returns a WorkflowStepDefinitionInformer.
-func (v *version) WorkflowStepDefinitions() WorkflowStepDefinitionInformer {
+// WorkflowStepDefinitions returns a TypedWorkflowStepDefinitionInformer.
+func (v *version) WorkflowStepDefinitions() TypedWorkflowStepDefinitionInformer {
 	return &workflowStepDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
-// WorkloadDefinitions returns a WorkloadDefinitionInformer.
-func (v *version) WorkloadDefinitions() WorkloadDefinitionInformer {
+// WorkloadDefinitions returns a TypedWorkloadDefinitionInformer.
+func (v *version) WorkloadDefinitions() TypedWorkloadDefinitionInformer {
 	return &workloadDefinitionInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

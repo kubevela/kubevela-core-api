@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // ApplicationRevisionLister helps list ApplicationRevisions.
@@ -29,7 +29,7 @@ import (
 type ApplicationRevisionLister interface {
 	// List lists all ApplicationRevisions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ApplicationRevision, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ApplicationRevision, err error)
 	// ApplicationRevisions returns an object that can list and get ApplicationRevisions.
 	ApplicationRevisions(namespace string) ApplicationRevisionNamespaceLister
 	ApplicationRevisionListerExpansion
@@ -37,17 +37,17 @@ type ApplicationRevisionLister interface {
 
 // applicationRevisionLister implements the ApplicationRevisionLister interface.
 type applicationRevisionLister struct {
-	listers.ResourceIndexer[*v1beta1.ApplicationRevision]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ApplicationRevision]
 }
 
 // NewApplicationRevisionLister returns a new ApplicationRevisionLister.
 func NewApplicationRevisionLister(indexer cache.Indexer) ApplicationRevisionLister {
-	return &applicationRevisionLister{listers.New[*v1beta1.ApplicationRevision](indexer, v1beta1.Resource("applicationrevision"))}
+	return &applicationRevisionLister{listers.New[*coreoamdevv1beta1.ApplicationRevision](indexer, coreoamdevv1beta1.Resource("applicationrevision"))}
 }
 
 // ApplicationRevisions returns an object that can list and get ApplicationRevisions.
 func (s *applicationRevisionLister) ApplicationRevisions(namespace string) ApplicationRevisionNamespaceLister {
-	return applicationRevisionNamespaceLister{listers.NewNamespaced[*v1beta1.ApplicationRevision](s.ResourceIndexer, namespace)}
+	return applicationRevisionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.ApplicationRevision](s.ResourceIndexer, namespace)}
 }
 
 // ApplicationRevisionNamespaceLister helps list and get ApplicationRevisions.
@@ -55,15 +55,15 @@ func (s *applicationRevisionLister) ApplicationRevisions(namespace string) Appli
 type ApplicationRevisionNamespaceLister interface {
 	// List lists all ApplicationRevisions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ApplicationRevision, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ApplicationRevision, err error)
 	// Get retrieves the ApplicationRevision from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.ApplicationRevision, error)
+	Get(name string) (*coreoamdevv1beta1.ApplicationRevision, error)
 	ApplicationRevisionNamespaceListerExpansion
 }
 
 // applicationRevisionNamespaceLister implements the ApplicationRevisionNamespaceLister
 // interface.
 type applicationRevisionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.ApplicationRevision]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ApplicationRevision]
 }

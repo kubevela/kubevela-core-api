@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // WorkflowStepDefinitionInformer provides access to a shared informer and lister for
-// WorkflowStepDefinitions.
+// WorkflowStepDefinitions. Prefer using the type-safe variant (see [TypedWorkflowStepDefinitionInformer]).
 type WorkflowStepDefinitionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.WorkflowStepDefinitionLister
+	Lister() coreoamdevv1beta1.WorkflowStepDefinitionLister
 }
+
+// TypedWorkflowStepDefinitionInformer provides access to a shared informer and lister for
+// WorkflowStepDefinitions, including the type-safe TypedInformer variant.
+// It is a superset of WorkflowStepDefinitionInformer.
+type TypedWorkflowStepDefinitionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() WorkflowStepDefinitionIndexInformer
+	Lister() coreoamdevv1beta1.WorkflowStepDefinitionLister
+}
+
+// WorkflowStepDefinitionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type WorkflowStepDefinitionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
+
+// WorkflowStepDefinitionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for WorkflowStepDefinition.
+type WorkflowStepDefinitionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
+
+// WorkflowStepDefinitionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for WorkflowStepDefinition.
+type WorkflowStepDefinitionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
+
+// WorkflowStepDefinitionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for WorkflowStepDefinition.
+type WorkflowStepDefinitionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
+
+// WorkflowStepDefinitionIndexers is a specialization of [cache.TypedIndexers] for WorkflowStepDefinition.
+type WorkflowStepDefinitionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
+
+// DeletedWorkflowStepDefinition is a specialization of [cache.DeletedObject] for WorkflowStepDefinition.
+type DeletedWorkflowStepDefinition = cache.DeletedObject[*apiscoreoamdevv1beta1.WorkflowStepDefinition]
 
 type workflowStepDefinitionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type workflowStepDefinitionInformer struct {
 // NewWorkflowStepDefinitionInformer constructs a new informer for WorkflowStepDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedWorkflowStepDefinitionInformer]).
 func NewWorkflowStepDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredWorkflowStepDefinitionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewWorkflowStepDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedWorkflowStepDefinitionInformer constructs a new informer for WorkflowStepDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedWorkflowStepDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers WorkflowStepDefinitionIndexers) WorkflowStepDefinitionIndexInformer {
+	return NewTypedWorkflowStepDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredWorkflowStepDefinitionInformer constructs a new informer for WorkflowStepDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredWorkflowStepDefinitionInformer]).
 func NewFilteredWorkflowStepDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedWorkflowStepDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredWorkflowStepDefinitionInformer constructs a new informer for WorkflowStepDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredWorkflowStepDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers WorkflowStepDefinitionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) WorkflowStepDefinitionIndexInformer {
+	return NewTypedWorkflowStepDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewWorkflowStepDefinitionInformerWithOptions constructs a new informer for WorkflowStepDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedWorkflowStepDefinitionInformerWithOptions]).
+func NewWorkflowStepDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedWorkflowStepDefinitionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedWorkflowStepDefinitionInformerWithOptions constructs a new informer for WorkflowStepDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedWorkflowStepDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) WorkflowStepDefinitionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "workflowstepdefinitions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkflowStepDefinition](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().WorkflowStepDefinitions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.WorkflowStepDefinition{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.WorkflowStepDefinition{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *workflowStepDefinitionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredWorkflowStepDefinitionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedWorkflowStepDefinitionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *workflowStepDefinitionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.WorkflowStepDefinition{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *workflowStepDefinitionInformer) Lister() v1beta1.WorkflowStepDefinitionLister {
-	return v1beta1.NewWorkflowStepDefinitionLister(f.Informer().GetIndexer())
+func (f *workflowStepDefinitionInformer) TypedInformer() WorkflowStepDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkflowStepDefinition](f.factory.InformerFor(&apiscoreoamdevv1beta1.WorkflowStepDefinition{}, f.defaultInformer))
+}
+
+func (f *workflowStepDefinitionInformer) Lister() coreoamdevv1beta1.WorkflowStepDefinitionLister {
+	return coreoamdevv1beta1.NewWorkflowStepDefinitionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedWorkflowStepDefinitionInformer converts an untyped informer into a TypedWorkflowStepDefinitionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *WorkflowStepDefinition. If that is not the case, calling type-safe methods of the returned
+// TypedWorkflowStepDefinitionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedWorkflowStepDefinitionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedWorkflowStepDefinitionInformer(informer WorkflowStepDefinitionInformer) TypedWorkflowStepDefinitionInformer {
+	if informer, ok := informer.(TypedWorkflowStepDefinitionInformer); ok {
+		return informer
+	}
+	return &workflowStepDefinitionTypedInformerAdapter{informer}
+}
+
+type workflowStepDefinitionTypedInformerAdapter struct {
+	WorkflowStepDefinitionInformer
+}
+
+func (a *workflowStepDefinitionTypedInformerAdapter) TypedInformer() WorkflowStepDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkflowStepDefinition](a.Informer())
+}
+
+// ToWorkflowStepDefinitionIndexInformer converts an untyped informer into a WorkflowStepDefinitionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *WorkflowStepDefinition. If that is not the case, calling type-safe methods of the returned
+// WorkflowStepDefinitionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a WorkflowStepDefinitionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToWorkflowStepDefinitionIndexInformer(informer cache.SharedIndexInformer) WorkflowStepDefinitionIndexInformer {
+	if informer, ok := informer.(WorkflowStepDefinitionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.WorkflowStepDefinition](informer)
 }

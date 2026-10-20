@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,33 +36,36 @@ type WorkflowStepDefinitionsGetter interface {
 
 // WorkflowStepDefinitionInterface has methods to work with WorkflowStepDefinition resources.
 type WorkflowStepDefinitionInterface interface {
-	Create(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.CreateOptions) (*v1beta1.WorkflowStepDefinition, error)
-	Update(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*v1beta1.WorkflowStepDefinition, error)
+	Create(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinition, opts v1.CreateOptions) (*coreoamdevv1beta1.WorkflowStepDefinition, error)
+	Update(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.WorkflowStepDefinition, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, workflowStepDefinition *v1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*v1beta1.WorkflowStepDefinition, error)
+	UpdateStatus(ctx context.Context, workflowStepDefinition *coreoamdevv1beta1.WorkflowStepDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.WorkflowStepDefinition, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.WorkflowStepDefinition, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.WorkflowStepDefinitionList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.WorkflowStepDefinition, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.WorkflowStepDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.WorkflowStepDefinition, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.WorkflowStepDefinition, err error)
 	WorkflowStepDefinitionExpansion
 }
 
 // workflowStepDefinitions implements WorkflowStepDefinitionInterface
 type workflowStepDefinitions struct {
-	*gentype.ClientWithList[*v1beta1.WorkflowStepDefinition, *v1beta1.WorkflowStepDefinitionList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.WorkflowStepDefinition, *coreoamdevv1beta1.WorkflowStepDefinitionList]
 }
 
 // newWorkflowStepDefinitions returns a WorkflowStepDefinitions
 func newWorkflowStepDefinitions(c *CoreV1beta1Client, namespace string) *workflowStepDefinitions {
 	return &workflowStepDefinitions{
-		gentype.NewClientWithList[*v1beta1.WorkflowStepDefinition, *v1beta1.WorkflowStepDefinitionList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.WorkflowStepDefinition, *coreoamdevv1beta1.WorkflowStepDefinitionList](
 			"workflowstepdefinitions",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.WorkflowStepDefinition { return &v1beta1.WorkflowStepDefinition{} },
-			func() *v1beta1.WorkflowStepDefinitionList { return &v1beta1.WorkflowStepDefinitionList{} }),
+			func() *coreoamdevv1beta1.WorkflowStepDefinition { return &coreoamdevv1beta1.WorkflowStepDefinition{} },
+			func() *coreoamdevv1beta1.WorkflowStepDefinitionList {
+				return &coreoamdevv1beta1.WorkflowStepDefinitionList{}
+			},
+		),
 	}
 }

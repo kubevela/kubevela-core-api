@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,33 +36,34 @@ type PolicyDefinitionsGetter interface {
 
 // PolicyDefinitionInterface has methods to work with PolicyDefinition resources.
 type PolicyDefinitionInterface interface {
-	Create(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.CreateOptions) (*v1beta1.PolicyDefinition, error)
-	Update(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.UpdateOptions) (*v1beta1.PolicyDefinition, error)
+	Create(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinition, opts v1.CreateOptions) (*coreoamdevv1beta1.PolicyDefinition, error)
+	Update(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.PolicyDefinition, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, policyDefinition *v1beta1.PolicyDefinition, opts v1.UpdateOptions) (*v1beta1.PolicyDefinition, error)
+	UpdateStatus(ctx context.Context, policyDefinition *coreoamdevv1beta1.PolicyDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.PolicyDefinition, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.PolicyDefinition, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.PolicyDefinitionList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.PolicyDefinition, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.PolicyDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.PolicyDefinition, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.PolicyDefinition, err error)
 	PolicyDefinitionExpansion
 }
 
 // policyDefinitions implements PolicyDefinitionInterface
 type policyDefinitions struct {
-	*gentype.ClientWithList[*v1beta1.PolicyDefinition, *v1beta1.PolicyDefinitionList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.PolicyDefinition, *coreoamdevv1beta1.PolicyDefinitionList]
 }
 
 // newPolicyDefinitions returns a PolicyDefinitions
 func newPolicyDefinitions(c *CoreV1beta1Client, namespace string) *policyDefinitions {
 	return &policyDefinitions{
-		gentype.NewClientWithList[*v1beta1.PolicyDefinition, *v1beta1.PolicyDefinitionList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.PolicyDefinition, *coreoamdevv1beta1.PolicyDefinitionList](
 			"policydefinitions",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.PolicyDefinition { return &v1beta1.PolicyDefinition{} },
-			func() *v1beta1.PolicyDefinitionList { return &v1beta1.PolicyDefinitionList{} }),
+			func() *coreoamdevv1beta1.PolicyDefinition { return &coreoamdevv1beta1.PolicyDefinition{} },
+			func() *coreoamdevv1beta1.PolicyDefinitionList { return &coreoamdevv1beta1.PolicyDefinitionList{} },
+		),
 	}
 }

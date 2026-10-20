@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // TraitDefinitionInformer provides access to a shared informer and lister for
-// TraitDefinitions.
+// TraitDefinitions. Prefer using the type-safe variant (see [TypedTraitDefinitionInformer]).
 type TraitDefinitionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.TraitDefinitionLister
+	Lister() coreoamdevv1beta1.TraitDefinitionLister
 }
+
+// TypedTraitDefinitionInformer provides access to a shared informer and lister for
+// TraitDefinitions, including the type-safe TypedInformer variant.
+// It is a superset of TraitDefinitionInformer.
+type TypedTraitDefinitionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() TraitDefinitionIndexInformer
+	Lister() coreoamdevv1beta1.TraitDefinitionLister
+}
+
+// TraitDefinitionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type TraitDefinitionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.TraitDefinition]
+
+// TraitDefinitionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for TraitDefinition.
+type TraitDefinitionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.TraitDefinition]
+
+// TraitDefinitionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for TraitDefinition.
+type TraitDefinitionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.TraitDefinition]
+
+// TraitDefinitionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for TraitDefinition.
+type TraitDefinitionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.TraitDefinition]
+
+// TraitDefinitionIndexers is a specialization of [cache.TypedIndexers] for TraitDefinition.
+type TraitDefinitionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.TraitDefinition]
+
+// DeletedTraitDefinition is a specialization of [cache.DeletedObject] for TraitDefinition.
+type DeletedTraitDefinition = cache.DeletedObject[*apiscoreoamdevv1beta1.TraitDefinition]
 
 type traitDefinitionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type traitDefinitionInformer struct {
 // NewTraitDefinitionInformer constructs a new informer for TraitDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedTraitDefinitionInformer]).
 func NewTraitDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredTraitDefinitionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewTraitDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedTraitDefinitionInformer constructs a new informer for TraitDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedTraitDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers TraitDefinitionIndexers) TraitDefinitionIndexInformer {
+	return NewTypedTraitDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredTraitDefinitionInformer constructs a new informer for TraitDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredTraitDefinitionInformer]).
 func NewFilteredTraitDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedTraitDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredTraitDefinitionInformer constructs a new informer for TraitDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredTraitDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers TraitDefinitionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) TraitDefinitionIndexInformer {
+	return NewTypedTraitDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewTraitDefinitionInformerWithOptions constructs a new informer for TraitDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedTraitDefinitionInformerWithOptions]).
+func NewTraitDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedTraitDefinitionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedTraitDefinitionInformerWithOptions constructs a new informer for TraitDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedTraitDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) TraitDefinitionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "traitdefinitions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.TraitDefinition](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().TraitDefinitions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().TraitDefinitions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().TraitDefinitions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().TraitDefinitions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().TraitDefinitions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().TraitDefinitions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.TraitDefinition{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.TraitDefinition{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *traitDefinitionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredTraitDefinitionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedTraitDefinitionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *traitDefinitionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.TraitDefinition{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *traitDefinitionInformer) Lister() v1beta1.TraitDefinitionLister {
-	return v1beta1.NewTraitDefinitionLister(f.Informer().GetIndexer())
+func (f *traitDefinitionInformer) TypedInformer() TraitDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.TraitDefinition](f.factory.InformerFor(&apiscoreoamdevv1beta1.TraitDefinition{}, f.defaultInformer))
+}
+
+func (f *traitDefinitionInformer) Lister() coreoamdevv1beta1.TraitDefinitionLister {
+	return coreoamdevv1beta1.NewTraitDefinitionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedTraitDefinitionInformer converts an untyped informer into a TypedTraitDefinitionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *TraitDefinition. If that is not the case, calling type-safe methods of the returned
+// TypedTraitDefinitionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedTraitDefinitionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedTraitDefinitionInformer(informer TraitDefinitionInformer) TypedTraitDefinitionInformer {
+	if informer, ok := informer.(TypedTraitDefinitionInformer); ok {
+		return informer
+	}
+	return &traitDefinitionTypedInformerAdapter{informer}
+}
+
+type traitDefinitionTypedInformerAdapter struct {
+	TraitDefinitionInformer
+}
+
+func (a *traitDefinitionTypedInformerAdapter) TypedInformer() TraitDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.TraitDefinition](a.Informer())
+}
+
+// ToTraitDefinitionIndexInformer converts an untyped informer into a TraitDefinitionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *TraitDefinition. If that is not the case, calling type-safe methods of the returned
+// TraitDefinitionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a TraitDefinitionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTraitDefinitionIndexInformer(informer cache.SharedIndexInformer) TraitDefinitionIndexInformer {
+	if informer, ok := informer.(TraitDefinitionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.TraitDefinition](informer)
 }

@@ -81,8 +81,8 @@ func TestUnstructured(t *testing.T) {
 
 func TestGetGVKFromDef(t *testing.T) {
 	mapper := mock.NewClient(nil, map[schema.GroupVersionResource][]schema.GroupVersionKind{
-		schema.GroupVersionResource{Group: "example.com", Resource: "abcs"}:                {{Group: "example.com", Version: "v1", Kind: "Abc"}},
-		schema.GroupVersionResource{Group: "example.com", Resource: "abcs", Version: "v2"}: {{Group: "example.com", Version: "v2", Kind: "Abc"}},
+		{Group: "example.com", Resource: "abcs"}:                {{Group: "example.com", Version: "v1", Kind: "Abc"}},
+		{Group: "example.com", Resource: "abcs", Version: "v2"}: {{Group: "example.com", Version: "v2", Kind: "Abc"}},
 	}).RESTMapper()
 	gvk, err := util.GetGVKFromDefinition(mapper, common.DefinitionReference{Name: "abcs.example.com"})
 	assert.NoError(t, err)
@@ -1373,4 +1373,15 @@ var componentDefinitionRevision = v1beta1.DefinitionRevision{
 			},
 		},
 	},
+}
+
+// The revision search label was written as a literal rather than taken from the
+// constant, and the literal did not match: revisions are labelled
+// sourcedefinition.oam.dev/name, so a search for source.oam.dev/name found
+// none and source version selection returned nothing at all.
+func TestDefinitionKindToNameLabelMatchesWhatRevisionsCarry(t *testing.T) {
+	assert.Equal(t, oam.LabelSourceDefinitionName, util.DefinitionKindToNameLabel[common.SourceType])
+	for kind, label := range util.DefinitionKindToNameLabel {
+		assert.NotEmpty(t, label, "definition kind %q has no search label", kind)
+	}
 }

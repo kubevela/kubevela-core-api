@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // ApplicationLister helps list Applications.
@@ -29,7 +29,7 @@ import (
 type ApplicationLister interface {
 	// List lists all Applications in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.Application, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.Application, err error)
 	// Applications returns an object that can list and get Applications.
 	Applications(namespace string) ApplicationNamespaceLister
 	ApplicationListerExpansion
@@ -37,17 +37,17 @@ type ApplicationLister interface {
 
 // applicationLister implements the ApplicationLister interface.
 type applicationLister struct {
-	listers.ResourceIndexer[*v1beta1.Application]
+	listers.ResourceIndexer[*coreoamdevv1beta1.Application]
 }
 
 // NewApplicationLister returns a new ApplicationLister.
 func NewApplicationLister(indexer cache.Indexer) ApplicationLister {
-	return &applicationLister{listers.New[*v1beta1.Application](indexer, v1beta1.Resource("application"))}
+	return &applicationLister{listers.New[*coreoamdevv1beta1.Application](indexer, coreoamdevv1beta1.Resource("application"))}
 }
 
 // Applications returns an object that can list and get Applications.
 func (s *applicationLister) Applications(namespace string) ApplicationNamespaceLister {
-	return applicationNamespaceLister{listers.NewNamespaced[*v1beta1.Application](s.ResourceIndexer, namespace)}
+	return applicationNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.Application](s.ResourceIndexer, namespace)}
 }
 
 // ApplicationNamespaceLister helps list and get Applications.
@@ -55,15 +55,15 @@ func (s *applicationLister) Applications(namespace string) ApplicationNamespaceL
 type ApplicationNamespaceLister interface {
 	// List lists all Applications in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.Application, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.Application, err error)
 	// Get retrieves the Application from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.Application, error)
+	Get(name string) (*coreoamdevv1beta1.Application, error)
 	ApplicationNamespaceListerExpansion
 }
 
 // applicationNamespaceLister implements the ApplicationNamespaceLister
 // interface.
 type applicationNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.Application]
+	listers.ResourceIndexer[*coreoamdevv1beta1.Application]
 }

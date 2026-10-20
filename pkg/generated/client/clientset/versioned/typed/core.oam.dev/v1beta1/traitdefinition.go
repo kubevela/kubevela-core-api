@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,33 +36,34 @@ type TraitDefinitionsGetter interface {
 
 // TraitDefinitionInterface has methods to work with TraitDefinition resources.
 type TraitDefinitionInterface interface {
-	Create(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.CreateOptions) (*v1beta1.TraitDefinition, error)
-	Update(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.UpdateOptions) (*v1beta1.TraitDefinition, error)
+	Create(ctx context.Context, traitDefinition *coreoamdevv1beta1.TraitDefinition, opts v1.CreateOptions) (*coreoamdevv1beta1.TraitDefinition, error)
+	Update(ctx context.Context, traitDefinition *coreoamdevv1beta1.TraitDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.TraitDefinition, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, traitDefinition *v1beta1.TraitDefinition, opts v1.UpdateOptions) (*v1beta1.TraitDefinition, error)
+	UpdateStatus(ctx context.Context, traitDefinition *coreoamdevv1beta1.TraitDefinition, opts v1.UpdateOptions) (*coreoamdevv1beta1.TraitDefinition, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.TraitDefinition, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.TraitDefinitionList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.TraitDefinition, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.TraitDefinitionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.TraitDefinition, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.TraitDefinition, err error)
 	TraitDefinitionExpansion
 }
 
 // traitDefinitions implements TraitDefinitionInterface
 type traitDefinitions struct {
-	*gentype.ClientWithList[*v1beta1.TraitDefinition, *v1beta1.TraitDefinitionList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.TraitDefinition, *coreoamdevv1beta1.TraitDefinitionList]
 }
 
 // newTraitDefinitions returns a TraitDefinitions
 func newTraitDefinitions(c *CoreV1beta1Client, namespace string) *traitDefinitions {
 	return &traitDefinitions{
-		gentype.NewClientWithList[*v1beta1.TraitDefinition, *v1beta1.TraitDefinitionList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.TraitDefinition, *coreoamdevv1beta1.TraitDefinitionList](
 			"traitdefinitions",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.TraitDefinition { return &v1beta1.TraitDefinition{} },
-			func() *v1beta1.TraitDefinitionList { return &v1beta1.TraitDefinitionList{} }),
+			func() *coreoamdevv1beta1.TraitDefinition { return &coreoamdevv1beta1.TraitDefinition{} },
+			func() *coreoamdevv1beta1.TraitDefinitionList { return &coreoamdevv1beta1.TraitDefinitionList{} },
+		),
 	}
 }

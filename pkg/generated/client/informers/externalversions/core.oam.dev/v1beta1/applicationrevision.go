@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // ApplicationRevisionInformer provides access to a shared informer and lister for
-// ApplicationRevisions.
+// ApplicationRevisions. Prefer using the type-safe variant (see [TypedApplicationRevisionInformer]).
 type ApplicationRevisionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.ApplicationRevisionLister
+	Lister() coreoamdevv1beta1.ApplicationRevisionLister
 }
+
+// TypedApplicationRevisionInformer provides access to a shared informer and lister for
+// ApplicationRevisions, including the type-safe TypedInformer variant.
+// It is a superset of ApplicationRevisionInformer.
+type TypedApplicationRevisionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() ApplicationRevisionIndexInformer
+	Lister() coreoamdevv1beta1.ApplicationRevisionLister
+}
+
+// ApplicationRevisionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type ApplicationRevisionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.ApplicationRevision]
+
+// ApplicationRevisionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for ApplicationRevision.
+type ApplicationRevisionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.ApplicationRevision]
+
+// ApplicationRevisionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for ApplicationRevision.
+type ApplicationRevisionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.ApplicationRevision]
+
+// ApplicationRevisionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for ApplicationRevision.
+type ApplicationRevisionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.ApplicationRevision]
+
+// ApplicationRevisionIndexers is a specialization of [cache.TypedIndexers] for ApplicationRevision.
+type ApplicationRevisionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.ApplicationRevision]
+
+// DeletedApplicationRevision is a specialization of [cache.DeletedObject] for ApplicationRevision.
+type DeletedApplicationRevision = cache.DeletedObject[*apiscoreoamdevv1beta1.ApplicationRevision]
 
 type applicationRevisionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type applicationRevisionInformer struct {
 // NewApplicationRevisionInformer constructs a new informer for ApplicationRevision type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedApplicationRevisionInformer]).
 func NewApplicationRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredApplicationRevisionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewApplicationRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedApplicationRevisionInformer constructs a new informer for ApplicationRevision type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedApplicationRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ApplicationRevisionIndexers) ApplicationRevisionIndexInformer {
+	return NewTypedApplicationRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredApplicationRevisionInformer constructs a new informer for ApplicationRevision type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredApplicationRevisionInformer]).
 func NewFilteredApplicationRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedApplicationRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredApplicationRevisionInformer constructs a new informer for ApplicationRevision type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredApplicationRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ApplicationRevisionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) ApplicationRevisionIndexInformer {
+	return NewTypedApplicationRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewApplicationRevisionInformerWithOptions constructs a new informer for ApplicationRevision type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedApplicationRevisionInformerWithOptions]).
+func NewApplicationRevisionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedApplicationRevisionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedApplicationRevisionInformerWithOptions constructs a new informer for ApplicationRevision type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedApplicationRevisionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) ApplicationRevisionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "applicationrevisions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ApplicationRevision](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ApplicationRevisions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().ApplicationRevisions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ApplicationRevisions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().ApplicationRevisions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ApplicationRevisions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ApplicationRevisions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.ApplicationRevision{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.ApplicationRevision{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *applicationRevisionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredApplicationRevisionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedApplicationRevisionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *applicationRevisionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.ApplicationRevision{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *applicationRevisionInformer) Lister() v1beta1.ApplicationRevisionLister {
-	return v1beta1.NewApplicationRevisionLister(f.Informer().GetIndexer())
+func (f *applicationRevisionInformer) TypedInformer() ApplicationRevisionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ApplicationRevision](f.factory.InformerFor(&apiscoreoamdevv1beta1.ApplicationRevision{}, f.defaultInformer))
+}
+
+func (f *applicationRevisionInformer) Lister() coreoamdevv1beta1.ApplicationRevisionLister {
+	return coreoamdevv1beta1.NewApplicationRevisionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedApplicationRevisionInformer converts an untyped informer into a TypedApplicationRevisionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ApplicationRevision. If that is not the case, calling type-safe methods of the returned
+// TypedApplicationRevisionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedApplicationRevisionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedApplicationRevisionInformer(informer ApplicationRevisionInformer) TypedApplicationRevisionInformer {
+	if informer, ok := informer.(TypedApplicationRevisionInformer); ok {
+		return informer
+	}
+	return &applicationRevisionTypedInformerAdapter{informer}
+}
+
+type applicationRevisionTypedInformerAdapter struct {
+	ApplicationRevisionInformer
+}
+
+func (a *applicationRevisionTypedInformerAdapter) TypedInformer() ApplicationRevisionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ApplicationRevision](a.Informer())
+}
+
+// ToApplicationRevisionIndexInformer converts an untyped informer into a ApplicationRevisionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ApplicationRevision. If that is not the case, calling type-safe methods of the returned
+// ApplicationRevisionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a ApplicationRevisionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToApplicationRevisionIndexInformer(informer cache.SharedIndexInformer) ApplicationRevisionIndexInformer {
+	if informer, ok := informer.(ApplicationRevisionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ApplicationRevision](informer)
 }

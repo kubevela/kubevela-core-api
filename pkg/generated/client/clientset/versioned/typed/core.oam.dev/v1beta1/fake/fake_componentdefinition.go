@@ -18,129 +18,34 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	labels "k8s.io/apimachinery/pkg/labels"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	testing "k8s.io/client-go/testing"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/typed/core.oam.dev/v1beta1"
+	gentype "k8s.io/client-go/gentype"
 )
 
-// FakeComponentDefinitions implements ComponentDefinitionInterface
-type FakeComponentDefinitions struct {
+// fakeComponentDefinitions implements ComponentDefinitionInterface
+type fakeComponentDefinitions struct {
+	*gentype.FakeClientWithList[*v1beta1.ComponentDefinition, *v1beta1.ComponentDefinitionList]
 	Fake *FakeCoreV1beta1
-	ns   string
 }
 
-var componentdefinitionsResource = v1beta1.SchemeGroupVersion.WithResource("componentdefinitions")
-
-var componentdefinitionsKind = v1beta1.SchemeGroupVersion.WithKind("ComponentDefinition")
-
-// Get takes name of the componentDefinition, and returns the corresponding componentDefinition object, and an error if there is any.
-func (c *FakeComponentDefinitions) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.ComponentDefinition, err error) {
-	emptyResult := &v1beta1.ComponentDefinition{}
-	obj, err := c.Fake.
-		Invokes(testing.NewGetActionWithOptions(componentdefinitionsResource, c.ns, name, options), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
+func newFakeComponentDefinitions(fake *FakeCoreV1beta1, namespace string) coreoamdevv1beta1.ComponentDefinitionInterface {
+	return &fakeComponentDefinitions{
+		gentype.NewFakeClientWithList[*v1beta1.ComponentDefinition, *v1beta1.ComponentDefinitionList](
+			fake.Fake,
+			namespace,
+			v1beta1.SchemeGroupVersion.WithResource("componentdefinitions"),
+			v1beta1.SchemeGroupVersion.WithKind("ComponentDefinition"),
+			func() *v1beta1.ComponentDefinition { return &v1beta1.ComponentDefinition{} },
+			func() *v1beta1.ComponentDefinitionList { return &v1beta1.ComponentDefinitionList{} },
+			func(dst, src *v1beta1.ComponentDefinitionList) { dst.ListMeta = src.ListMeta },
+			func(list *v1beta1.ComponentDefinitionList) []*v1beta1.ComponentDefinition {
+				return gentype.ToPointerSlice(list.Items)
+			},
+			func(list *v1beta1.ComponentDefinitionList, items []*v1beta1.ComponentDefinition) {
+				list.Items = gentype.FromPointerSlice(items)
+			},
+		),
+		fake,
 	}
-	return obj.(*v1beta1.ComponentDefinition), err
-}
-
-// List takes label and field selectors, and returns the list of ComponentDefinitions that match those selectors.
-func (c *FakeComponentDefinitions) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.ComponentDefinitionList, err error) {
-	emptyResult := &v1beta1.ComponentDefinitionList{}
-	obj, err := c.Fake.
-		Invokes(testing.NewListActionWithOptions(componentdefinitionsResource, componentdefinitionsKind, c.ns, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-
-	label, _, _ := testing.ExtractFromListOptions(opts)
-	if label == nil {
-		label = labels.Everything()
-	}
-	list := &v1beta1.ComponentDefinitionList{ListMeta: obj.(*v1beta1.ComponentDefinitionList).ListMeta}
-	for _, item := range obj.(*v1beta1.ComponentDefinitionList).Items {
-		if label.Matches(labels.Set(item.Labels)) {
-			list.Items = append(list.Items, item)
-		}
-	}
-	return list, err
-}
-
-// Watch returns a watch.Interface that watches the requested componentDefinitions.
-func (c *FakeComponentDefinitions) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
-	return c.Fake.
-		InvokesWatch(testing.NewWatchActionWithOptions(componentdefinitionsResource, c.ns, opts))
-
-}
-
-// Create takes the representation of a componentDefinition and creates it.  Returns the server's representation of the componentDefinition, and an error, if there is any.
-func (c *FakeComponentDefinitions) Create(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.CreateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	emptyResult := &v1beta1.ComponentDefinition{}
-	obj, err := c.Fake.
-		Invokes(testing.NewCreateActionWithOptions(componentdefinitionsResource, c.ns, componentDefinition, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.ComponentDefinition), err
-}
-
-// Update takes the representation of a componentDefinition and updates it. Returns the server's representation of the componentDefinition, and an error, if there is any.
-func (c *FakeComponentDefinitions) Update(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	emptyResult := &v1beta1.ComponentDefinition{}
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateActionWithOptions(componentdefinitionsResource, c.ns, componentDefinition, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.ComponentDefinition), err
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeComponentDefinitions) UpdateStatus(ctx context.Context, componentDefinition *v1beta1.ComponentDefinition, opts v1.UpdateOptions) (result *v1beta1.ComponentDefinition, err error) {
-	emptyResult := &v1beta1.ComponentDefinition{}
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceActionWithOptions(componentdefinitionsResource, "status", c.ns, componentDefinition, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.ComponentDefinition), err
-}
-
-// Delete takes name of the componentDefinition and deletes it. Returns an error if one occurs.
-func (c *FakeComponentDefinitions) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
-	_, err := c.Fake.
-		Invokes(testing.NewDeleteActionWithOptions(componentdefinitionsResource, c.ns, name, opts), &v1beta1.ComponentDefinition{})
-
-	return err
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *FakeComponentDefinitions) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionActionWithOptions(componentdefinitionsResource, c.ns, opts, listOpts)
-
-	_, err := c.Fake.Invokes(action, &v1beta1.ComponentDefinitionList{})
-	return err
-}
-
-// Patch applies the patch and returns the patched componentDefinition.
-func (c *FakeComponentDefinitions) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ComponentDefinition, err error) {
-	emptyResult := &v1beta1.ComponentDefinition{}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceActionWithOptions(componentdefinitionsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.ComponentDefinition), err
 }

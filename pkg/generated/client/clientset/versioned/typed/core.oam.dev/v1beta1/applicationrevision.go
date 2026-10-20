@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,33 +36,34 @@ type ApplicationRevisionsGetter interface {
 
 // ApplicationRevisionInterface has methods to work with ApplicationRevision resources.
 type ApplicationRevisionInterface interface {
-	Create(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.CreateOptions) (*v1beta1.ApplicationRevision, error)
-	Update(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error)
+	Create(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevision, opts v1.CreateOptions) (*coreoamdevv1beta1.ApplicationRevision, error)
+	Update(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevision, opts v1.UpdateOptions) (*coreoamdevv1beta1.ApplicationRevision, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, applicationRevision *v1beta1.ApplicationRevision, opts v1.UpdateOptions) (*v1beta1.ApplicationRevision, error)
+	UpdateStatus(ctx context.Context, applicationRevision *coreoamdevv1beta1.ApplicationRevision, opts v1.UpdateOptions) (*coreoamdevv1beta1.ApplicationRevision, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.ApplicationRevision, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ApplicationRevisionList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.ApplicationRevision, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.ApplicationRevisionList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ApplicationRevision, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.ApplicationRevision, err error)
 	ApplicationRevisionExpansion
 }
 
 // applicationRevisions implements ApplicationRevisionInterface
 type applicationRevisions struct {
-	*gentype.ClientWithList[*v1beta1.ApplicationRevision, *v1beta1.ApplicationRevisionList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.ApplicationRevision, *coreoamdevv1beta1.ApplicationRevisionList]
 }
 
 // newApplicationRevisions returns a ApplicationRevisions
 func newApplicationRevisions(c *CoreV1beta1Client, namespace string) *applicationRevisions {
 	return &applicationRevisions{
-		gentype.NewClientWithList[*v1beta1.ApplicationRevision, *v1beta1.ApplicationRevisionList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.ApplicationRevision, *coreoamdevv1beta1.ApplicationRevisionList](
 			"applicationrevisions",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.ApplicationRevision { return &v1beta1.ApplicationRevision{} },
-			func() *v1beta1.ApplicationRevisionList { return &v1beta1.ApplicationRevisionList{} }),
+			func() *coreoamdevv1beta1.ApplicationRevision { return &coreoamdevv1beta1.ApplicationRevision{} },
+			func() *coreoamdevv1beta1.ApplicationRevisionList { return &coreoamdevv1beta1.ApplicationRevisionList{} },
+		),
 	}
 }

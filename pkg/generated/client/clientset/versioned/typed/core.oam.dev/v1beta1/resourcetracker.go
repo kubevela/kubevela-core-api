@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,31 +36,32 @@ type ResourceTrackersGetter interface {
 
 // ResourceTrackerInterface has methods to work with ResourceTracker resources.
 type ResourceTrackerInterface interface {
-	Create(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.CreateOptions) (*v1beta1.ResourceTracker, error)
-	Update(ctx context.Context, resourceTracker *v1beta1.ResourceTracker, opts v1.UpdateOptions) (*v1beta1.ResourceTracker, error)
+	Create(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTracker, opts v1.CreateOptions) (*coreoamdevv1beta1.ResourceTracker, error)
+	Update(ctx context.Context, resourceTracker *coreoamdevv1beta1.ResourceTracker, opts v1.UpdateOptions) (*coreoamdevv1beta1.ResourceTracker, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.ResourceTracker, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ResourceTrackerList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.ResourceTracker, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.ResourceTrackerList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.ResourceTracker, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.ResourceTracker, err error)
 	ResourceTrackerExpansion
 }
 
 // resourceTrackers implements ResourceTrackerInterface
 type resourceTrackers struct {
-	*gentype.ClientWithList[*v1beta1.ResourceTracker, *v1beta1.ResourceTrackerList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.ResourceTracker, *coreoamdevv1beta1.ResourceTrackerList]
 }
 
 // newResourceTrackers returns a ResourceTrackers
 func newResourceTrackers(c *CoreV1beta1Client, namespace string) *resourceTrackers {
 	return &resourceTrackers{
-		gentype.NewClientWithList[*v1beta1.ResourceTracker, *v1beta1.ResourceTrackerList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.ResourceTracker, *coreoamdevv1beta1.ResourceTrackerList](
 			"resourcetrackers",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.ResourceTracker { return &v1beta1.ResourceTracker{} },
-			func() *v1beta1.ResourceTrackerList { return &v1beta1.ResourceTrackerList{} }),
+			func() *coreoamdevv1beta1.ResourceTracker { return &coreoamdevv1beta1.ResourceTracker{} },
+			func() *coreoamdevv1beta1.ResourceTrackerList { return &coreoamdevv1beta1.ResourceTrackerList{} },
+		),
 	}
 }

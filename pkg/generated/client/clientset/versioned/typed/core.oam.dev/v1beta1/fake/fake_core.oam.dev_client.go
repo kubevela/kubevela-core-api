@@ -28,39 +28,43 @@ type FakeCoreV1beta1 struct {
 }
 
 func (c *FakeCoreV1beta1) Applications(namespace string) v1beta1.ApplicationInterface {
-	return &FakeApplications{c, namespace}
+	return newFakeApplications(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) ApplicationRevisions(namespace string) v1beta1.ApplicationRevisionInterface {
-	return &FakeApplicationRevisions{c, namespace}
+	return newFakeApplicationRevisions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) ComponentDefinitions(namespace string) v1beta1.ComponentDefinitionInterface {
-	return &FakeComponentDefinitions{c, namespace}
+	return newFakeComponentDefinitions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) DefinitionRevisions(namespace string) v1beta1.DefinitionRevisionInterface {
-	return &FakeDefinitionRevisions{c, namespace}
+	return newFakeDefinitionRevisions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) PolicyDefinitions(namespace string) v1beta1.PolicyDefinitionInterface {
-	return &FakePolicyDefinitions{c, namespace}
+	return newFakePolicyDefinitions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) ResourceTrackers(namespace string) v1beta1.ResourceTrackerInterface {
-	return &FakeResourceTrackers{c, namespace}
+	return newFakeResourceTrackers(c, namespace)
+}
+
+func (c *FakeCoreV1beta1) SourceDefinitions(namespace string) v1beta1.SourceDefinitionInterface {
+	return newFakeSourceDefinitions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) TraitDefinitions(namespace string) v1beta1.TraitDefinitionInterface {
-	return &FakeTraitDefinitions{c, namespace}
+	return newFakeTraitDefinitions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) WorkflowStepDefinitions(namespace string) v1beta1.WorkflowStepDefinitionInterface {
-	return &FakeWorkflowStepDefinitions{c, namespace}
+	return newFakeWorkflowStepDefinitions(c, namespace)
 }
 
 func (c *FakeCoreV1beta1) WorkloadDefinitions(namespace string) v1beta1.WorkloadDefinitionInterface {
-	return &FakeWorkloadDefinitions{c, namespace}
+	return newFakeWorkloadDefinitions(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

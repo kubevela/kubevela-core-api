@@ -18,9 +18,10 @@ limitations under the License.
 package externalversions
 
 import (
-	"fmt"
+	fmt "fmt"
 
-	v1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
+	v1alpha1 "github.com/oam-dev/kubevela-core-api/apis/config.oam.dev/v1alpha1"
+	coreoamdevv1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
 	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -52,8 +53,14 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=core.oam.dev, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("policies"):
+	// Group=config.oam.dev, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("configs"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Config().V1alpha1().Configs().Informer()}, nil
+	case v1alpha1.SchemeGroupVersion.WithResource("configtemplates"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Config().V1alpha1().ConfigTemplates().Informer()}, nil
+
+		// Group=core.oam.dev, Version=v1alpha1
+	case coreoamdevv1alpha1.SchemeGroupVersion.WithResource("policies"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1alpha1().Policies().Informer()}, nil
 
 		// Group=core.oam.dev, Version=v1beta1
@@ -69,6 +76,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().PolicyDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("resourcetrackers"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().ResourceTrackers().Informer()}, nil
+	case v1beta1.SchemeGroupVersion.WithResource("sourcedefinitions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().SourceDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("traitdefinitions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Core().V1beta1().TraitDefinitions().Informer()}, nil
 	case v1beta1.SchemeGroupVersion.WithResource("workflowstepdefinitions"):

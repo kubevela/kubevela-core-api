@@ -18,9 +18,10 @@ limitations under the License.
 package versioned
 
 import (
-	"fmt"
-	"net/http"
+	fmt "fmt"
+	http "net/http"
 
+	configv1alpha1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/typed/config.oam.dev/v1alpha1"
 	corev1alpha1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/typed/core.oam.dev/v1alpha1"
 	corev1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/typed/core.oam.dev/v1beta1"
 	discovery "k8s.io/client-go/discovery"
@@ -29,7 +30,8 @@ import (
 )
 
 type Interface interface {
-	Discovery() discovery.DiscoveryInterface
+	Discovery() discovery.DiscoveryInterfaces
+	ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface
 	CoreV1alpha1() corev1alpha1.CoreV1alpha1Interface
 	CoreV1beta1() corev1beta1.CoreV1beta1Interface
 }
@@ -37,8 +39,14 @@ type Interface interface {
 // Clientset contains the clients for groups.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	coreV1alpha1 *corev1alpha1.CoreV1alpha1Client
-	coreV1beta1  *corev1beta1.CoreV1beta1Client
+	configV1alpha1 *configv1alpha1.ConfigV1alpha1Client
+	coreV1alpha1   *corev1alpha1.CoreV1alpha1Client
+	coreV1beta1    *corev1beta1.CoreV1beta1Client
+}
+
+// ConfigV1alpha1 retrieves the ConfigV1alpha1Client
+func (c *Clientset) ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface {
+	return c.configV1alpha1
 }
 
 // CoreV1alpha1 retrieves the CoreV1alpha1Client
@@ -52,7 +60,7 @@ func (c *Clientset) CoreV1beta1() corev1beta1.CoreV1beta1Interface {
 }
 
 // Discovery retrieves the DiscoveryClient
-func (c *Clientset) Discovery() discovery.DiscoveryInterface {
+func (c *Clientset) Discovery() discovery.DiscoveryInterfaces {
 	if c == nil {
 		return nil
 	}
@@ -95,6 +103,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 
 	var cs Clientset
 	var err error
+	cs.configV1alpha1, err = configv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
 	cs.coreV1alpha1, err = corev1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -124,6 +136,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
+	cs.configV1alpha1 = configv1alpha1.New(c)
 	cs.coreV1alpha1 = corev1alpha1.New(c)
 	cs.coreV1beta1 = corev1beta1.New(c)
 

@@ -18,25 +18,54 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
+	apiscoreoamdevv1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1alpha1"
+	coreoamdevv1alpha1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // PolicyInformer provides access to a shared informer and lister for
-// Policies.
+// Policies. Prefer using the type-safe variant (see [TypedPolicyInformer]).
 type PolicyInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.PolicyLister
+	Lister() coreoamdevv1alpha1.PolicyLister
 }
+
+// TypedPolicyInformer provides access to a shared informer and lister for
+// Policies, including the type-safe TypedInformer variant.
+// It is a superset of PolicyInformer.
+type TypedPolicyInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() PolicyIndexInformer
+	Lister() coreoamdevv1alpha1.PolicyLister
+}
+
+// PolicyIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type PolicyIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1alpha1.Policy]
+
+// PolicyHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for Policy.
+type PolicyHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1alpha1.Policy]
+
+// PolicyDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for Policy.
+type PolicyDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1alpha1.Policy]
+
+// PolicyFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for Policy.
+type PolicyFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1alpha1.Policy]
+
+// PolicyIndexers is a specialization of [cache.TypedIndexers] for Policy.
+type PolicyIndexers = cache.TypedIndexers[*apiscoreoamdevv1alpha1.Policy]
+
+// DeletedPolicy is a specialization of [cache.DeletedObject] for Policy.
+type DeletedPolicy = cache.DeletedObject[*apiscoreoamdevv1alpha1.Policy]
 
 type policyInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type policyInformer struct {
 // NewPolicyInformer constructs a new informer for Policy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedPolicyInformer]).
 func NewPolicyInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredPolicyInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewPolicyInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedPolicyInformer constructs a new informer for Policy type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedPolicyInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers PolicyIndexers) PolicyIndexInformer {
+	return NewTypedPolicyInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredPolicyInformer constructs a new informer for Policy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredPolicyInformer]).
 func NewFilteredPolicyInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedPolicyInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredPolicyInformer constructs a new informer for Policy type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredPolicyInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers PolicyIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) PolicyIndexInformer {
+	return NewTypedPolicyInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewPolicyInformerWithOptions constructs a new informer for Policy type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedPolicyInformerWithOptions]).
+func NewPolicyInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedPolicyInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedPolicyInformerWithOptions constructs a new informer for Policy type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedPolicyInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) PolicyIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1alpha1", Resource: "policys"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1alpha1.Policy](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Policies(namespace).List(context.TODO(), options)
+				return client.CoreV1alpha1().Policies(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1alpha1().Policies(namespace).Watch(context.TODO(), options)
+				return client.CoreV1alpha1().Policies(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1alpha1().Policies(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1alpha1().Policies(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1alpha1.Policy{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1alpha1.Policy{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *policyInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredPolicyInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedPolicyInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *policyInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1alpha1.Policy{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *policyInformer) Lister() v1alpha1.PolicyLister {
-	return v1alpha1.NewPolicyLister(f.Informer().GetIndexer())
+func (f *policyInformer) TypedInformer() PolicyIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1alpha1.Policy](f.factory.InformerFor(&apiscoreoamdevv1alpha1.Policy{}, f.defaultInformer))
+}
+
+func (f *policyInformer) Lister() coreoamdevv1alpha1.PolicyLister {
+	return coreoamdevv1alpha1.NewPolicyLister(f.Informer().GetIndexer())
+}
+
+// ToTypedPolicyInformer converts an untyped informer into a TypedPolicyInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *Policy. If that is not the case, calling type-safe methods of the returned
+// TypedPolicyInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedPolicyInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedPolicyInformer(informer PolicyInformer) TypedPolicyInformer {
+	if informer, ok := informer.(TypedPolicyInformer); ok {
+		return informer
+	}
+	return &policyTypedInformerAdapter{informer}
+}
+
+type policyTypedInformerAdapter struct {
+	PolicyInformer
+}
+
+func (a *policyTypedInformerAdapter) TypedInformer() PolicyIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1alpha1.Policy](a.Informer())
+}
+
+// ToPolicyIndexInformer converts an untyped informer into a PolicyIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *Policy. If that is not the case, calling type-safe methods of the returned
+// PolicyIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a PolicyIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToPolicyIndexInformer(informer cache.SharedIndexInformer) PolicyIndexInformer {
+	if informer, ok := informer.(PolicyIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1alpha1.Policy](informer)
 }

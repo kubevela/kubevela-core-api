@@ -29,6 +29,8 @@ type PolicyDefinitionExpansion interface{}
 
 type ResourceTrackerExpansion interface{}
 
+type SourceDefinitionExpansion interface{}
+
 type TraitDefinitionExpansion interface{}
 
 type WorkflowStepDefinitionExpansion interface{}

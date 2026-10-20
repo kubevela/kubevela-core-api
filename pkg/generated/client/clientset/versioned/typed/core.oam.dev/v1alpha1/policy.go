@@ -18,9 +18,9 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
+	context "context"
 
-	v1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
+	coreoamdevv1alpha1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1alpha1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,31 +36,32 @@ type PoliciesGetter interface {
 
 // PolicyInterface has methods to work with Policy resources.
 type PolicyInterface interface {
-	Create(ctx context.Context, policy *v1alpha1.Policy, opts v1.CreateOptions) (*v1alpha1.Policy, error)
-	Update(ctx context.Context, policy *v1alpha1.Policy, opts v1.UpdateOptions) (*v1alpha1.Policy, error)
+	Create(ctx context.Context, policy *coreoamdevv1alpha1.Policy, opts v1.CreateOptions) (*coreoamdevv1alpha1.Policy, error)
+	Update(ctx context.Context, policy *coreoamdevv1alpha1.Policy, opts v1.UpdateOptions) (*coreoamdevv1alpha1.Policy, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.Policy, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.PolicyList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1alpha1.Policy, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1alpha1.PolicyList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.Policy, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1alpha1.Policy, err error)
 	PolicyExpansion
 }
 
 // policies implements PolicyInterface
 type policies struct {
-	*gentype.ClientWithList[*v1alpha1.Policy, *v1alpha1.PolicyList]
+	*gentype.ClientWithList[*coreoamdevv1alpha1.Policy, *coreoamdevv1alpha1.PolicyList]
 }
 
 // newPolicies returns a Policies
 func newPolicies(c *CoreV1alpha1Client, namespace string) *policies {
 	return &policies{
-		gentype.NewClientWithList[*v1alpha1.Policy, *v1alpha1.PolicyList](
+		gentype.NewClientWithList[*coreoamdevv1alpha1.Policy, *coreoamdevv1alpha1.PolicyList](
 			"policies",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1alpha1.Policy { return &v1alpha1.Policy{} },
-			func() *v1alpha1.PolicyList { return &v1alpha1.PolicyList{} }),
+			func() *coreoamdevv1alpha1.Policy { return &coreoamdevv1alpha1.Policy{} },
+			func() *coreoamdevv1alpha1.PolicyList { return &coreoamdevv1alpha1.PolicyList{} },
+		),
 	}
 }

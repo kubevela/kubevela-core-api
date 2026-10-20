@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // ResourceTrackerInformer provides access to a shared informer and lister for
-// ResourceTrackers.
+// ResourceTrackers. Prefer using the type-safe variant (see [TypedResourceTrackerInformer]).
 type ResourceTrackerInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.ResourceTrackerLister
+	Lister() coreoamdevv1beta1.ResourceTrackerLister
 }
+
+// TypedResourceTrackerInformer provides access to a shared informer and lister for
+// ResourceTrackers, including the type-safe TypedInformer variant.
+// It is a superset of ResourceTrackerInformer.
+type TypedResourceTrackerInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() ResourceTrackerIndexInformer
+	Lister() coreoamdevv1beta1.ResourceTrackerLister
+}
+
+// ResourceTrackerIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type ResourceTrackerIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.ResourceTracker]
+
+// ResourceTrackerHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for ResourceTracker.
+type ResourceTrackerHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.ResourceTracker]
+
+// ResourceTrackerDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for ResourceTracker.
+type ResourceTrackerDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.ResourceTracker]
+
+// ResourceTrackerFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for ResourceTracker.
+type ResourceTrackerFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.ResourceTracker]
+
+// ResourceTrackerIndexers is a specialization of [cache.TypedIndexers] for ResourceTracker.
+type ResourceTrackerIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.ResourceTracker]
+
+// DeletedResourceTracker is a specialization of [cache.DeletedObject] for ResourceTracker.
+type DeletedResourceTracker = cache.DeletedObject[*apiscoreoamdevv1beta1.ResourceTracker]
 
 type resourceTrackerInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type resourceTrackerInformer struct {
 // NewResourceTrackerInformer constructs a new informer for ResourceTracker type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedResourceTrackerInformer]).
 func NewResourceTrackerInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredResourceTrackerInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewResourceTrackerInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedResourceTrackerInformer constructs a new informer for ResourceTracker type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedResourceTrackerInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ResourceTrackerIndexers) ResourceTrackerIndexInformer {
+	return NewTypedResourceTrackerInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredResourceTrackerInformer constructs a new informer for ResourceTracker type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredResourceTrackerInformer]).
 func NewFilteredResourceTrackerInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedResourceTrackerInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredResourceTrackerInformer constructs a new informer for ResourceTracker type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredResourceTrackerInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ResourceTrackerIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) ResourceTrackerIndexInformer {
+	return NewTypedResourceTrackerInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewResourceTrackerInformerWithOptions constructs a new informer for ResourceTracker type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedResourceTrackerInformerWithOptions]).
+func NewResourceTrackerInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedResourceTrackerInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedResourceTrackerInformerWithOptions constructs a new informer for ResourceTracker type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedResourceTrackerInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) ResourceTrackerIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "resourcetrackers"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ResourceTracker](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ResourceTrackers(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().ResourceTrackers(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ResourceTrackers(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().ResourceTrackers(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ResourceTrackers(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ResourceTrackers(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.ResourceTracker{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.ResourceTracker{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *resourceTrackerInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredResourceTrackerInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedResourceTrackerInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *resourceTrackerInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.ResourceTracker{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *resourceTrackerInformer) Lister() v1beta1.ResourceTrackerLister {
-	return v1beta1.NewResourceTrackerLister(f.Informer().GetIndexer())
+func (f *resourceTrackerInformer) TypedInformer() ResourceTrackerIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ResourceTracker](f.factory.InformerFor(&apiscoreoamdevv1beta1.ResourceTracker{}, f.defaultInformer))
+}
+
+func (f *resourceTrackerInformer) Lister() coreoamdevv1beta1.ResourceTrackerLister {
+	return coreoamdevv1beta1.NewResourceTrackerLister(f.Informer().GetIndexer())
+}
+
+// ToTypedResourceTrackerInformer converts an untyped informer into a TypedResourceTrackerInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ResourceTracker. If that is not the case, calling type-safe methods of the returned
+// TypedResourceTrackerInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedResourceTrackerInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedResourceTrackerInformer(informer ResourceTrackerInformer) TypedResourceTrackerInformer {
+	if informer, ok := informer.(TypedResourceTrackerInformer); ok {
+		return informer
+	}
+	return &resourceTrackerTypedInformerAdapter{informer}
+}
+
+type resourceTrackerTypedInformerAdapter struct {
+	ResourceTrackerInformer
+}
+
+func (a *resourceTrackerTypedInformerAdapter) TypedInformer() ResourceTrackerIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ResourceTracker](a.Informer())
+}
+
+// ToResourceTrackerIndexInformer converts an untyped informer into a ResourceTrackerIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ResourceTracker. If that is not the case, calling type-safe methods of the returned
+// ResourceTrackerIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a ResourceTrackerIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToResourceTrackerIndexInformer(informer cache.SharedIndexInformer) ResourceTrackerIndexInformer {
+	if informer, ok := informer.(ResourceTrackerIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ResourceTracker](informer)
 }

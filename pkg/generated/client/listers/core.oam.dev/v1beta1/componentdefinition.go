@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // ComponentDefinitionLister helps list ComponentDefinitions.
@@ -29,7 +29,7 @@ import (
 type ComponentDefinitionLister interface {
 	// List lists all ComponentDefinitions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ComponentDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ComponentDefinition, err error)
 	// ComponentDefinitions returns an object that can list and get ComponentDefinitions.
 	ComponentDefinitions(namespace string) ComponentDefinitionNamespaceLister
 	ComponentDefinitionListerExpansion
@@ -37,17 +37,17 @@ type ComponentDefinitionLister interface {
 
 // componentDefinitionLister implements the ComponentDefinitionLister interface.
 type componentDefinitionLister struct {
-	listers.ResourceIndexer[*v1beta1.ComponentDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ComponentDefinition]
 }
 
 // NewComponentDefinitionLister returns a new ComponentDefinitionLister.
 func NewComponentDefinitionLister(indexer cache.Indexer) ComponentDefinitionLister {
-	return &componentDefinitionLister{listers.New[*v1beta1.ComponentDefinition](indexer, v1beta1.Resource("componentdefinition"))}
+	return &componentDefinitionLister{listers.New[*coreoamdevv1beta1.ComponentDefinition](indexer, coreoamdevv1beta1.Resource("componentdefinition"))}
 }
 
 // ComponentDefinitions returns an object that can list and get ComponentDefinitions.
 func (s *componentDefinitionLister) ComponentDefinitions(namespace string) ComponentDefinitionNamespaceLister {
-	return componentDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.ComponentDefinition](s.ResourceIndexer, namespace)}
+	return componentDefinitionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.ComponentDefinition](s.ResourceIndexer, namespace)}
 }
 
 // ComponentDefinitionNamespaceLister helps list and get ComponentDefinitions.
@@ -55,15 +55,15 @@ func (s *componentDefinitionLister) ComponentDefinitions(namespace string) Compo
 type ComponentDefinitionNamespaceLister interface {
 	// List lists all ComponentDefinitions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.ComponentDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.ComponentDefinition, err error)
 	// Get retrieves the ComponentDefinition from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.ComponentDefinition, error)
+	Get(name string) (*coreoamdevv1beta1.ComponentDefinition, error)
 	ComponentDefinitionNamespaceListerExpansion
 }
 
 // componentDefinitionNamespaceLister implements the ComponentDefinitionNamespaceLister
 // interface.
 type componentDefinitionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.ComponentDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.ComponentDefinition]
 }

@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // ComponentDefinitionInformer provides access to a shared informer and lister for
-// ComponentDefinitions.
+// ComponentDefinitions. Prefer using the type-safe variant (see [TypedComponentDefinitionInformer]).
 type ComponentDefinitionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.ComponentDefinitionLister
+	Lister() coreoamdevv1beta1.ComponentDefinitionLister
 }
+
+// TypedComponentDefinitionInformer provides access to a shared informer and lister for
+// ComponentDefinitions, including the type-safe TypedInformer variant.
+// It is a superset of ComponentDefinitionInformer.
+type TypedComponentDefinitionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() ComponentDefinitionIndexInformer
+	Lister() coreoamdevv1beta1.ComponentDefinitionLister
+}
+
+// ComponentDefinitionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type ComponentDefinitionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.ComponentDefinition]
+
+// ComponentDefinitionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for ComponentDefinition.
+type ComponentDefinitionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.ComponentDefinition]
+
+// ComponentDefinitionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for ComponentDefinition.
+type ComponentDefinitionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.ComponentDefinition]
+
+// ComponentDefinitionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for ComponentDefinition.
+type ComponentDefinitionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.ComponentDefinition]
+
+// ComponentDefinitionIndexers is a specialization of [cache.TypedIndexers] for ComponentDefinition.
+type ComponentDefinitionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.ComponentDefinition]
+
+// DeletedComponentDefinition is a specialization of [cache.DeletedObject] for ComponentDefinition.
+type DeletedComponentDefinition = cache.DeletedObject[*apiscoreoamdevv1beta1.ComponentDefinition]
 
 type componentDefinitionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type componentDefinitionInformer struct {
 // NewComponentDefinitionInformer constructs a new informer for ComponentDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedComponentDefinitionInformer]).
 func NewComponentDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredComponentDefinitionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewComponentDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedComponentDefinitionInformer constructs a new informer for ComponentDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedComponentDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ComponentDefinitionIndexers) ComponentDefinitionIndexInformer {
+	return NewTypedComponentDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredComponentDefinitionInformer constructs a new informer for ComponentDefinition type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredComponentDefinitionInformer]).
 func NewFilteredComponentDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedComponentDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredComponentDefinitionInformer constructs a new informer for ComponentDefinition type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredComponentDefinitionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers ComponentDefinitionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) ComponentDefinitionIndexInformer {
+	return NewTypedComponentDefinitionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewComponentDefinitionInformerWithOptions constructs a new informer for ComponentDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedComponentDefinitionInformerWithOptions]).
+func NewComponentDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedComponentDefinitionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedComponentDefinitionInformerWithOptions constructs a new informer for ComponentDefinition type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedComponentDefinitionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) ComponentDefinitionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "componentdefinitions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ComponentDefinition](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ComponentDefinitions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().ComponentDefinitions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().ComponentDefinitions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().ComponentDefinitions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ComponentDefinitions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().ComponentDefinitions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.ComponentDefinition{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.ComponentDefinition{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *componentDefinitionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredComponentDefinitionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedComponentDefinitionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *componentDefinitionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.ComponentDefinition{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *componentDefinitionInformer) Lister() v1beta1.ComponentDefinitionLister {
-	return v1beta1.NewComponentDefinitionLister(f.Informer().GetIndexer())
+func (f *componentDefinitionInformer) TypedInformer() ComponentDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ComponentDefinition](f.factory.InformerFor(&apiscoreoamdevv1beta1.ComponentDefinition{}, f.defaultInformer))
+}
+
+func (f *componentDefinitionInformer) Lister() coreoamdevv1beta1.ComponentDefinitionLister {
+	return coreoamdevv1beta1.NewComponentDefinitionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedComponentDefinitionInformer converts an untyped informer into a TypedComponentDefinitionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ComponentDefinition. If that is not the case, calling type-safe methods of the returned
+// TypedComponentDefinitionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedComponentDefinitionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedComponentDefinitionInformer(informer ComponentDefinitionInformer) TypedComponentDefinitionInformer {
+	if informer, ok := informer.(TypedComponentDefinitionInformer); ok {
+		return informer
+	}
+	return &componentDefinitionTypedInformerAdapter{informer}
+}
+
+type componentDefinitionTypedInformerAdapter struct {
+	ComponentDefinitionInformer
+}
+
+func (a *componentDefinitionTypedInformerAdapter) TypedInformer() ComponentDefinitionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ComponentDefinition](a.Informer())
+}
+
+// ToComponentDefinitionIndexInformer converts an untyped informer into a ComponentDefinitionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *ComponentDefinition. If that is not the case, calling type-safe methods of the returned
+// ComponentDefinitionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a ComponentDefinitionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToComponentDefinitionIndexInformer(informer cache.SharedIndexInformer) ComponentDefinitionIndexInformer {
+	if informer, ok := informer.(ComponentDefinitionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.ComponentDefinition](informer)
 }

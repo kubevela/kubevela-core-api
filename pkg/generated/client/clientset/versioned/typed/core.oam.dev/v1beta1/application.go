@@ -18,9 +18,9 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	scheme "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
@@ -36,33 +36,34 @@ type ApplicationsGetter interface {
 
 // ApplicationInterface has methods to work with Application resources.
 type ApplicationInterface interface {
-	Create(ctx context.Context, application *v1beta1.Application, opts v1.CreateOptions) (*v1beta1.Application, error)
-	Update(ctx context.Context, application *v1beta1.Application, opts v1.UpdateOptions) (*v1beta1.Application, error)
+	Create(ctx context.Context, application *coreoamdevv1beta1.Application, opts v1.CreateOptions) (*coreoamdevv1beta1.Application, error)
+	Update(ctx context.Context, application *coreoamdevv1beta1.Application, opts v1.UpdateOptions) (*coreoamdevv1beta1.Application, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, application *v1beta1.Application, opts v1.UpdateOptions) (*v1beta1.Application, error)
+	UpdateStatus(ctx context.Context, application *coreoamdevv1beta1.Application, opts v1.UpdateOptions) (*coreoamdevv1beta1.Application, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.Application, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.ApplicationList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*coreoamdevv1beta1.Application, error)
+	List(ctx context.Context, opts v1.ListOptions) (*coreoamdevv1beta1.ApplicationList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.Application, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *coreoamdevv1beta1.Application, err error)
 	ApplicationExpansion
 }
 
 // applications implements ApplicationInterface
 type applications struct {
-	*gentype.ClientWithList[*v1beta1.Application, *v1beta1.ApplicationList]
+	*gentype.ClientWithList[*coreoamdevv1beta1.Application, *coreoamdevv1beta1.ApplicationList]
 }
 
 // newApplications returns a Applications
 func newApplications(c *CoreV1beta1Client, namespace string) *applications {
 	return &applications{
-		gentype.NewClientWithList[*v1beta1.Application, *v1beta1.ApplicationList](
+		gentype.NewClientWithList[*coreoamdevv1beta1.Application, *coreoamdevv1beta1.ApplicationList](
 			"applications",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.Application { return &v1beta1.Application{} },
-			func() *v1beta1.ApplicationList { return &v1beta1.ApplicationList{} }),
+			func() *coreoamdevv1beta1.Application { return &coreoamdevv1beta1.Application{} },
+			func() *coreoamdevv1beta1.ApplicationList { return &coreoamdevv1beta1.ApplicationList{} },
+		),
 	}
 }

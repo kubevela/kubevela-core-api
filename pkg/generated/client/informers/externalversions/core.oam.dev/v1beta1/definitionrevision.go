@@ -18,25 +18,54 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	apiscoreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
 	versioned "github.com/oam-dev/kubevela-core-api/pkg/generated/client/clientset/versioned"
 	internalinterfaces "github.com/oam-dev/kubevela-core-api/pkg/generated/client/informers/externalversions/internalinterfaces"
-	v1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/pkg/generated/client/listers/core.oam.dev/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 )
 
 // DefinitionRevisionInformer provides access to a shared informer and lister for
-// DefinitionRevisions.
+// DefinitionRevisions. Prefer using the type-safe variant (see [TypedDefinitionRevisionInformer]).
 type DefinitionRevisionInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.DefinitionRevisionLister
+	Lister() coreoamdevv1beta1.DefinitionRevisionLister
 }
+
+// TypedDefinitionRevisionInformer provides access to a shared informer and lister for
+// DefinitionRevisions, including the type-safe TypedInformer variant.
+// It is a superset of DefinitionRevisionInformer.
+type TypedDefinitionRevisionInformer interface {
+	Informer() cache.SharedIndexInformer
+	TypedInformer() DefinitionRevisionIndexInformer
+	Lister() coreoamdevv1beta1.DefinitionRevisionLister
+}
+
+// DefinitionRevisionIndexInformer is a wrapper around the underlying [cache.SharedIndexInformer]
+// with type-safe variants of several methods.
+type DefinitionRevisionIndexInformer cache.TypedSharedIndexInformer[*apiscoreoamdevv1beta1.DefinitionRevision]
+
+// DefinitionRevisionHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerFuncs] for DefinitionRevision.
+type DefinitionRevisionHandlerFuncs = cache.TypedResourceEventHandlerFuncs[*apiscoreoamdevv1beta1.DefinitionRevision]
+
+// DefinitionRevisionDetailedHandlerFuncs is a specialization of [cache.TypedResourceEventHandlerDetailedFuncs] for DefinitionRevision.
+type DefinitionRevisionDetailedHandlerFuncs = cache.TypedResourceEventHandlerDetailedFuncs[*apiscoreoamdevv1beta1.DefinitionRevision]
+
+// DefinitionRevisionFilteringHandler is a specialization of [cache.TypedFilteringResourceEventHandler] for DefinitionRevision.
+type DefinitionRevisionFilteringHandler = cache.TypedFilteringResourceEventHandler[*apiscoreoamdevv1beta1.DefinitionRevision]
+
+// DefinitionRevisionIndexers is a specialization of [cache.TypedIndexers] for DefinitionRevision.
+type DefinitionRevisionIndexers = cache.TypedIndexers[*apiscoreoamdevv1beta1.DefinitionRevision]
+
+// DeletedDefinitionRevision is a specialization of [cache.DeletedObject] for DefinitionRevision.
+type DeletedDefinitionRevision = cache.DeletedObject[*apiscoreoamdevv1beta1.DefinitionRevision]
 
 type definitionRevisionInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
@@ -47,43 +76,132 @@ type definitionRevisionInformer struct {
 // NewDefinitionRevisionInformer constructs a new informer for DefinitionRevision type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedDefinitionRevisionInformer]).
 func NewDefinitionRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredDefinitionRevisionInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewDefinitionRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
+}
+
+// NewTypedDefinitionRevisionInformer constructs a new informer for DefinitionRevision type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedDefinitionRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers DefinitionRevisionIndexers) DefinitionRevisionIndexInformer {
+	return NewTypedDefinitionRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers)})
 }
 
 // NewFilteredDefinitionRevisionInformer constructs a new informer for DefinitionRevision type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedFilteredDefinitionRevisionInformer]).
 func NewFilteredDefinitionRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewTypedDefinitionRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewTypedFilteredDefinitionRevisionInformer constructs a new informer for DefinitionRevision type.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedFilteredDefinitionRevisionInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers DefinitionRevisionIndexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) DefinitionRevisionIndexInformer {
+	return NewTypedDefinitionRevisionInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.TypedIndexersToIndexers(indexers), TweakListOptions: tweakListOptions})
+}
+
+// NewDefinitionRevisionInformerWithOptions constructs a new informer for DefinitionRevision type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+// If you really need an independent one, prefer using the type-safe variant (see [NewTypedDefinitionRevisionInformerWithOptions]).
+func NewDefinitionRevisionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	return NewTypedDefinitionRevisionInformerWithOptions(client, namespace, options)
+}
+
+// NewTypedDefinitionRevisionInformerWithOptions constructs a new informer for DefinitionRevision type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewTypedDefinitionRevisionInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) DefinitionRevisionIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "core.oam.dev", Version: "v1beta1", Resource: "definitionrevisions"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.DefinitionRevision](cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().DefinitionRevisions(namespace).List(context.TODO(), options)
+				return client.CoreV1beta1().DefinitionRevisions(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CoreV1beta1().DefinitionRevisions(namespace).Watch(context.TODO(), options)
+				return client.CoreV1beta1().DefinitionRevisions(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().DefinitionRevisions(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CoreV1beta1().DefinitionRevisions(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscoreoamdevv1beta1.DefinitionRevision{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&coreoamdevv1beta1.DefinitionRevision{},
-		resyncPeriod,
-		indexers,
-	)
+	))
 }
 
 func (f *definitionRevisionInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredDefinitionRevisionInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewTypedDefinitionRevisionInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *definitionRevisionInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&coreoamdevv1beta1.DefinitionRevision{}, f.defaultInformer)
+	return f.TypedInformer()
 }
 
-func (f *definitionRevisionInformer) Lister() v1beta1.DefinitionRevisionLister {
-	return v1beta1.NewDefinitionRevisionLister(f.Informer().GetIndexer())
+func (f *definitionRevisionInformer) TypedInformer() DefinitionRevisionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.DefinitionRevision](f.factory.InformerFor(&apiscoreoamdevv1beta1.DefinitionRevision{}, f.defaultInformer))
+}
+
+func (f *definitionRevisionInformer) Lister() coreoamdevv1beta1.DefinitionRevisionLister {
+	return coreoamdevv1beta1.NewDefinitionRevisionLister(f.Informer().GetIndexer())
+}
+
+// ToTypedDefinitionRevisionInformer converts an untyped informer into a TypedDefinitionRevisionInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *DefinitionRevision. If that is not the case, calling type-safe methods of the returned
+// TypedDefinitionRevisionInformer leads to runtime panics. A safer alternative is to pass
+// around a TypedDefinitionRevisionInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToTypedDefinitionRevisionInformer(informer DefinitionRevisionInformer) TypedDefinitionRevisionInformer {
+	if informer, ok := informer.(TypedDefinitionRevisionInformer); ok {
+		return informer
+	}
+	return &definitionRevisionTypedInformerAdapter{informer}
+}
+
+type definitionRevisionTypedInformerAdapter struct {
+	DefinitionRevisionInformer
+}
+
+func (a *definitionRevisionTypedInformerAdapter) TypedInformer() DefinitionRevisionIndexInformer {
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.DefinitionRevision](a.Informer())
+}
+
+// ToDefinitionRevisionIndexInformer converts an untyped informer into a DefinitionRevisionIndexInformer.
+//
+// WARNING: this conversion is only safe if the informer handles objects of type
+// *DefinitionRevision. If that is not the case, calling type-safe methods of the returned
+// DefinitionRevisionIndexInformer leads to runtime panics. A safer alternative is to pass
+// around a DefinitionRevisionIndexInformer instances that was obtained from a
+// SharedInformerFactory.
+func ToDefinitionRevisionIndexInformer(informer cache.SharedIndexInformer) DefinitionRevisionIndexInformer {
+	if informer, ok := informer.(DefinitionRevisionIndexInformer); ok {
+		return informer
+	}
+	return cache.NewTypedSharedIndexInformer[*apiscoreoamdevv1beta1.DefinitionRevision](informer)
 }

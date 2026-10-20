@@ -18,10 +18,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	v1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	coreoamdevv1beta1 "github.com/oam-dev/kubevela-core-api/apis/core.oam.dev/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // PolicyDefinitionLister helps list PolicyDefinitions.
@@ -29,7 +29,7 @@ import (
 type PolicyDefinitionLister interface {
 	// List lists all PolicyDefinitions in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.PolicyDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.PolicyDefinition, err error)
 	// PolicyDefinitions returns an object that can list and get PolicyDefinitions.
 	PolicyDefinitions(namespace string) PolicyDefinitionNamespaceLister
 	PolicyDefinitionListerExpansion
@@ -37,17 +37,17 @@ type PolicyDefinitionLister interface {
 
 // policyDefinitionLister implements the PolicyDefinitionLister interface.
 type policyDefinitionLister struct {
-	listers.ResourceIndexer[*v1beta1.PolicyDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.PolicyDefinition]
 }
 
 // NewPolicyDefinitionLister returns a new PolicyDefinitionLister.
 func NewPolicyDefinitionLister(indexer cache.Indexer) PolicyDefinitionLister {
-	return &policyDefinitionLister{listers.New[*v1beta1.PolicyDefinition](indexer, v1beta1.Resource("policydefinition"))}
+	return &policyDefinitionLister{listers.New[*coreoamdevv1beta1.PolicyDefinition](indexer, coreoamdevv1beta1.Resource("policydefinition"))}
 }
 
 // PolicyDefinitions returns an object that can list and get PolicyDefinitions.
 func (s *policyDefinitionLister) PolicyDefinitions(namespace string) PolicyDefinitionNamespaceLister {
-	return policyDefinitionNamespaceLister{listers.NewNamespaced[*v1beta1.PolicyDefinition](s.ResourceIndexer, namespace)}
+	return policyDefinitionNamespaceLister{listers.NewNamespaced[*coreoamdevv1beta1.PolicyDefinition](s.ResourceIndexer, namespace)}
 }
 
 // PolicyDefinitionNamespaceLister helps list and get PolicyDefinitions.
@@ -55,15 +55,15 @@ func (s *policyDefinitionLister) PolicyDefinitions(namespace string) PolicyDefin
 type PolicyDefinitionNamespaceLister interface {
 	// List lists all PolicyDefinitions in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.PolicyDefinition, err error)
+	List(selector labels.Selector) (ret []*coreoamdevv1beta1.PolicyDefinition, err error)
 	// Get retrieves the PolicyDefinition from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.PolicyDefinition, error)
+	Get(name string) (*coreoamdevv1beta1.PolicyDefinition, error)
 	PolicyDefinitionNamespaceListerExpansion
 }
 
 // policyDefinitionNamespaceLister implements the PolicyDefinitionNamespaceLister
 // interface.
 type policyDefinitionNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.PolicyDefinition]
+	listers.ResourceIndexer[*coreoamdevv1beta1.PolicyDefinition]
 }
